@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(glfw)
 include_directories(glfw/include)
 
-add_executable(BP_2022_Zappe main.cpp)
+add_executable(BP_2022_Zappe main.cpp graph.cpp graph.h drawing.cpp drawing.h)
 
 target_link_libraries(BP_2022_Zappe glfw ${GLFW_LIBRARIES})
