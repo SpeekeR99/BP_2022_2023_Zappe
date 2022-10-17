@@ -7,19 +7,6 @@
 #include <cmath>
 #include "../graphics/drawing.h"
 
-class Node {
-private:
-    int v;
-    int x;
-    int y;
-
-public:
-    Node(int v, int x, int y) : v(v), x(x), y(y) {}
-    int get_v() const { return v; }
-    int get_x() const { return x; }
-    int get_y() const { return y; }
-};
-
 class Graph {
 private:
     int v;
@@ -30,6 +17,7 @@ public:
     ~Graph();
 
     void add_edge(int src, int dest) const;
+    void remove_edge(int src, int dest) const;
     void print_adj() const;
     void draw_grid_graph() const;
 

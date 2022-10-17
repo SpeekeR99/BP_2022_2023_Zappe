@@ -13,6 +13,21 @@ void Graph::add_edge(int src, int dest) const {
     adj[dest].push_back(src);
 }
 
+void Graph::remove_edge(int src, int dest) const {
+    for (int i = 0; i < adj[src].size(); i++) {
+        if (adj[src][i] == dest) {
+            adj[src].erase(adj[src].begin() + i);
+            break;
+        }
+    }
+    for (int i = 0; i < adj[dest].size(); i++) {
+        if (adj[dest][i] == src) {
+            adj[dest].erase(adj[dest].begin() + i);
+            break;
+        }
+    }
+}
+
 void Graph::print_adj() const {
     for (int i = 0; i < v; i++) {
         std::cout << i << " -> ";
@@ -32,13 +47,13 @@ void Graph::draw_grid_graph() const {
         int x = i % size * grid_len + offset;
         int y = i / size * grid_len + offset;
 
-        Drawing::draw_rectangle(x - 10, y - 10, 20, 20, {0, 255, 0}, 10.0f);
+        Drawing::draw_rectangle(x - 5, y - 5, 10, 10, {255, 255, 255}, 2.0f);
 
         for (int &j: adj[i]) {
             int x2 = j % size * grid_len + offset;
             int y2 = j / size * grid_len + offset;
 
-            Drawing::draw_line(x, y, x2, y2, {255, 0, 0}, 5.0f);
+            Drawing::draw_line(x, y, x2, y2, {255, 255, 255}, 20.0f);
         }
     }
 }

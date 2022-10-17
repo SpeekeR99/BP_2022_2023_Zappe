@@ -7,6 +7,13 @@ int height = 480;
 
 int main() {
     auto grid_graph = Graph::create_grid_graph(5);
+    // remove some edges to make it into a maze
+    grid_graph->remove_edge(0, 1);
+    grid_graph->remove_edge(1, 2);
+    grid_graph->remove_edge(3, 4);
+    grid_graph->remove_edge(4, 5);
+    grid_graph->remove_edge(5, 10);
+    grid_graph->remove_edge(10, 15);
     grid_graph->print_adj();
 
     GLFWwindow* window;
@@ -26,7 +33,7 @@ int main() {
     glfwMakeContextCurrent(window);
 
     /* White background */
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
