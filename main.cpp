@@ -1,7 +1,6 @@
 #include <glfw/glfw3.h>
 
-int main(int argc, char **argv)
-{
+int main() {
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -9,9 +8,8 @@ int main(int argc, char **argv)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
+    window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
+    if (!window) {
         glfwTerminate();
         return -1;
     }
@@ -24,6 +22,12 @@ int main(int argc, char **argv)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBegin(GL_TRIANGLES);
+        glVertex2f(-0.5f, -0.5f);
+        glVertex2f(0.0f, 0.5f);
+        glVertex2f(0.5f, -0.5f);
+        glEnd();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
