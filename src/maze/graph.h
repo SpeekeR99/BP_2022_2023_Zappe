@@ -1,11 +1,11 @@
 #pragma once
 
-#include <glfw/glfw3.h>
+#include "GLFW/glfw3.h"
 #include <iostream>
 #include <vector>
 #include <memory>
 #include <cmath>
-#include "drawing.h"
+#include "../graphics/drawing.h"
 
 class Graph {
 private:

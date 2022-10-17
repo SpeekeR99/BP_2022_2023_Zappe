@@ -1,6 +1,6 @@
-#include <glfw/glfw3.h>
-#include "drawing.h"
-#include "graph.h"
+#include "GLFW/glfw3.h"
+#include "../graphics/drawing.h"
+#include "../maze/graph.h"
 
 int width = 640;
 int height = 480;
