@@ -2,15 +2,20 @@
 
 Graph::Graph(int v) : v{v} {
     adj = new std::vector<int>[v];
+    nodes.resize(v);
 }
 
 Graph::~Graph() {
     delete[] adj;
 }
 
-void Graph::add_edge(int src, int dest) const {
-    adj[src].push_back(dest);
-    adj[dest].push_back(src);
+void Graph::add_edge(const std::shared_ptr<Node>& src, const std::shared_ptr<Node>& dest) {
+    if (!nodes[src->get_v()])
+        nodes.insert(nodes.begin() + src->get_v(), src);
+    if (!nodes[dest->get_v()])
+        nodes.insert(nodes.begin() + dest->get_v(), dest);
+    adj[src->get_v()].push_back(dest->get_v());
+    adj[dest->get_v()].push_back(src->get_v());
 }
 
 void Graph::remove_edge(int src, int dest) const {
@@ -39,36 +44,37 @@ void Graph::print_adj() const {
 }
 
 void Graph::draw_grid_graph() const {
-    int size = sqrt(v);
-    int grid_len = 50;
-    int offset = 50;
-
     for (int i = 0; i < v; i++) {
-        int x = i % size * grid_len + offset;
-        int y = i / size * grid_len + offset;
+        auto node = nodes[i];
 
-        Drawing::draw_rectangle(x - 5, y - 5, 10, 10, {255, 255, 255}, 2.0f);
+        Drawing::draw_rectangle(node->get_x() - 5, node->get_y() - 5, 10, 10, {255, 255, 255}, 2.0f);
 
         for (int &j: adj[i]) {
-            int x2 = j % size * grid_len + offset;
-            int y2 = j / size * grid_len + offset;
+            auto adjacent_node = nodes[j];
 
-            Drawing::draw_line(x, y, x2, y2, {255, 255, 255}, 20.0f);
+            Drawing::draw_line(node->get_x(), node->get_y(), adjacent_node->get_x(), adjacent_node->get_y(), {255, 255, 255}, 2.0f);
         }
     }
 }
 
 std::unique_ptr<Graph> Graph::create_grid_graph(int size) {
+    int grid_len = 50;
+    int offset = 50;
     auto grid_graph = std::make_unique<Graph>(size * size);
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             if (i < size - 1) {
-                grid_graph->add_edge(i * size + j, i * size + j + size);
+                int v1 = i * size + j;
+                int v2 = i * size + j + size;
+                grid_graph->add_edge(std::make_shared<Node>(v1, v1 % size * grid_len + offset, v1 / size * grid_len + offset), std::make_shared<Node>(v2, v2 % size * grid_len + offset, v2 / size * grid_len + offset));
             }
             if (j < size - 1) {
-                grid_graph->add_edge(i * size + j, i * size + j + 1);
+                int v1 = i * size + j;
+                int v2 = i * size + j + 1;
+                grid_graph->add_edge(std::make_shared<Node>(v1, v1 % size * grid_len + offset, v1 / size * grid_len + offset), std::make_shared<Node>(v2, v2 % size * grid_len + offset, v2 / size * grid_len + offset));
             }
         }
     }
     return grid_graph;
 }
+
