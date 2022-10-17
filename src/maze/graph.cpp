@@ -1,7 +1,6 @@
 #include "graph.h"
 
-Graph::Graph(int v) {
-    this->v = v;
+Graph::Graph(int v) : v{v} {
     adj = new std::vector<int>[v];
 }
 
@@ -17,7 +16,7 @@ void Graph::add_edge(int src, int dest) const {
 void Graph::print_adj() const {
     for (int i = 0; i < v; i++) {
         std::cout << i << " -> ";
-        for (int & j : adj[i]) {
+        for (int &j: adj[i]) {
             std::cout << j << " ";
         }
         std::cout << std::endl;
@@ -33,9 +32,9 @@ void Graph::draw_grid_graph() const {
         int x = i % size * grid_len + offset;
         int y = i / size * grid_len + offset;
 
-        Drawing::draw_square(x - 5, y - 5, 10, 10, {0, 255, 0}, 7.0f);
+        Drawing::draw_rectangle(x - 10, y - 10, 20, 20, {0, 255, 0}, 10.0f);
 
-        for (int & j : adj[i]) {
+        for (int &j: adj[i]) {
             int x2 = j % size * grid_len + offset;
             int y2 = j / size * grid_len + offset;
 

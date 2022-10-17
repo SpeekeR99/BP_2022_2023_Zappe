@@ -1,10 +1,13 @@
 #include "drawing.h"
 
+int window_width = 640;
+int window_height = 480;
+
 void Drawing::draw_line(int x0, int y0, int x1, int y1, std::array<int, 3> color, float line_width) {
-    float x_start = static_cast<float>(x0) / static_cast<float>(static_cast<double>(640) / 2) - 1.0f;
-    float y_start = -1 * (static_cast<float>(y0) / static_cast<float>(static_cast<double>(480) / 2) - 1.0f);
-    float x_end = static_cast<float>(x1) / static_cast<float>(static_cast<double>(640) / 2) - 1.0f;
-    float y_end = -1 * (static_cast<float>(y1) / static_cast<float>(static_cast<double>(480) / 2) - 1.0f);
+    float x_start = static_cast<float>(x0) / static_cast<float>(static_cast<double>(window_width) / 2) - 1.0f;
+    float y_start = -1 * (static_cast<float>(y0) / static_cast<float>(static_cast<double>(window_height) / 2) - 1.0f);
+    float x_end = static_cast<float>(x1) / static_cast<float>(static_cast<double>(window_width) / 2) - 1.0f;
+    float y_end = -1 * (static_cast<float>(y1) / static_cast<float>(static_cast<double>(window_height) / 2) - 1.0f);
     float red = static_cast<float>(color[0])/255;
     float green = static_cast<float>(color[1])/255;
     float blue = static_cast<float>(color[2])/255;
@@ -17,7 +20,7 @@ void Drawing::draw_line(int x0, int y0, int x1, int y1, std::array<int, 3> color
     glEnd();
 }
 
-void Drawing::draw_square(int x, int y, int width, int height, std::array<int, 3> color, float line_width) {
+void Drawing::draw_rectangle(int x, int y, int width, int height, std::array<int, 3> color, float line_width) {
     draw_line(x, y, x + width, y, color, line_width);
     draw_line(x + width, y, x + width, y + height, color, line_width);
     draw_line(x + width, y + height, x, y + height, color, line_width);

@@ -1,6 +1,6 @@
 #include "GLFW/glfw3.h"
-#include "../graphics/drawing.h"
-#include "../maze/graph.h"
+#include "graphics/drawing.h"
+#include "maze/graph.h"
 
 int width = 640;
 int height = 480;
@@ -24,6 +24,9 @@ int main() {
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+
+    /* White background */
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
