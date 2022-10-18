@@ -27,16 +27,16 @@ void Drawing::draw_rectangle(int x, int y, int width, int height, std::array<int
     draw_line(x, y + height, x, y, color, line_width);
 }
 
-void Drawing::draw_grid_graph(const std::shared_ptr<Graph>& grid_graph) {
-    for (int i = 0; i < grid_graph->get_v(); i++) {
-        auto node = grid_graph->get_nodes()[i];
+void Drawing::draw_graph(const std::shared_ptr<Graph>& graph, std::array<int, 3> color) {
+    for (int i = 0; i < graph->get_v(); i++) {
+        auto node = graph->get_nodes()[i];
 
-        Drawing::draw_rectangle(node->get_x() - 5, node->get_y() - 5, 10, 10, {255, 255, 255}, 2.0f);
+        Drawing::draw_rectangle(node->get_x() - 10, node->get_y() - 10, 20, 20, color, 1.0f);
 
-        for (int &j: grid_graph->get_adj()[i]) {
-            auto adjacent_node = grid_graph->get_nodes()[j];
+        for (int &j: graph->get_adj()[i]) {
+            auto adjacent_node = graph->get_nodes()[j];
 
-            Drawing::draw_line(node->get_x(), node->get_y(), adjacent_node->get_x(), adjacent_node->get_y(), {255, 255, 255}, 20.0f);
+            Drawing::draw_line(node->get_x(), node->get_y(), adjacent_node->get_x(), adjacent_node->get_y(), color, 4.0f);
         }
     }
 }
