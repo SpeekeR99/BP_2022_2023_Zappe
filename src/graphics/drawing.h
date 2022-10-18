@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
+#include <memory>
 #include "GLFW/glfw3.h"
 #include "../maze/graph.h"
-#include <memory>
-#include <array>
 
 class Drawing {
 public:

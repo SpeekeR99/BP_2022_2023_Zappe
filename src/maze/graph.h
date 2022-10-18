@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
 #include <iostream>
 #include <vector>
 #include <memory>
 #include <cmath>
 #include <algorithm>
+#include "GLFW/glfw3.h"
 #include "node.h"
 
 class Graph {
