@@ -1,7 +1,7 @@
 #include "drawing.h"
 
-int window_width = 640;
-int window_height = 480;
+int window_width = 1080;
+int window_height = 620;
 
 void Drawing::draw_line(int x0, int y0, int x1, int y1, std::array<int, 3> color, float line_width) {
     float x_start = static_cast<float>(x0) / static_cast<float>(static_cast<double>(window_width) / 2) - 1.0f;
