@@ -1,7 +1,8 @@
 #include "generator.h"
 
 std::shared_ptr<Graph> Generator::generate_maze_dfs(int width, int height) {
-    srand(time(nullptr));
+    std::default_random_engine gen{static_cast<long unsigned int>(time(nullptr))};
+    std::uniform_int_distribution<> dis(0, RAND_MAX);
 
     auto to_be_removed_paths = Graph::create_orthogonal_grid_graph(width, height);
 
@@ -24,7 +25,7 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(int width, int height) {
                 current = stack.back();
             }
         } else {
-            int random_neighbor = neighbors[rand() % neighbors.size()];
+            int random_neighbor = neighbors[dis(gen) % neighbors.size()];
             to_be_removed_paths->remove_edge(current, random_neighbor);
             stack.push_back(random_neighbor);
             current = random_neighbor;

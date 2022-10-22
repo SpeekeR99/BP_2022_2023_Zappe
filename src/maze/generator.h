@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <random>
 #include <ctime>
 #include "graph.h"
 
