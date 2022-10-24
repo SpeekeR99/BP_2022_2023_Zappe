@@ -36,23 +36,10 @@ int main() {
     std::cout << "GLEW version: " << glewGetString(GLEW_VERSION) << std::endl;
 
     /* White background */
-//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-//    auto maze = Generator::generate_maze_dfs(20, 11);
-
-    /* Modern OpenGL */
-    float positions[6] = {
-            -0.5f, -0.5f,
-            0.0f, 0.5f,
-            0.5f, -0.5f
-    };
-
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr);
-    glEnableVertexAttribArray(0);
+    /* Generate maze */
+    auto maze = Generator::generate_maze_dfs(20, 11);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -60,18 +47,9 @@ int main() {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-//        Drawing::draw_graph(maze, {0, 155, 0});
-//        Drawing::draw_graph(Graph::transform_paths_to_walls(maze), {0, 0, 0});
-
-        /* Legacy OpenGL drawing */
-//        glBegin(GL_TRIANGLES);
-//        glVertex2f(-0.5f, -0.5f);
-//        glVertex2f(0.0f, 0.5f);
-//        glVertex2f(0.5f, -0.5f);
-//        glEnd();
-
-        /* Modern OpenGL drawing */
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        /* Draw maze */
+        Drawing::draw_graph(maze, {0, 155, 0});
+        Drawing::draw_graph(Graph::transform_paths_to_walls(maze), {0, 0, 0});
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
