@@ -1,5 +1,6 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
 #include "graphics/drawing.h"
 #include "maze/graph.h"
 #include "maze/generator.h"
@@ -30,6 +31,11 @@ int main() {
         std::cout << "Error!" << std::endl;
     }
     std::cout << glGetString(GL_VERSION) << std::endl;
+
+    glm::vec4 pos = glm::vec4( glm::vec3(0.0f), 1.0f);
+    glm::mat4 model = glm::mat4(1.0f);
+    model[3] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec4 trans = model * pos;
 
     /* White background */
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
