@@ -5,10 +5,26 @@ find_package(OpenGL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_definitions(-DGLEW_STATIC)
+
 # Including GLFW
 add_subdirectory(glfw)
-include_directories(glfw/include)
+include_directories(${GLFW_INCLUDE_DIRS})
 
-add_executable(BP_2022_Zappe src/main.cpp src/maze/graph.cpp src/maze/graph.h src/graphics/drawing.cpp src/graphics/drawing.h src/maze/node.cpp src/maze/node.h src/maze/generator.cpp src/maze/generator.h)
+# Including GLEW
+add_subdirectory(glew)
+include_directories(${GLEW_INCLUDE_DIRS})
 
-target_link_libraries(BP_2022_Zappe glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARY})
+add_executable(BP_2022_Zappe
+    src/main.cpp
+    src/maze/graph.cpp
+    src/maze/graph.h
+    src/graphics/drawing.cpp
+    src/graphics/drawing.h
+    src/maze/node.cpp
+    src/maze/node.h
+    src/maze/generator.cpp
+    src/maze/generator.h
+)
+
+target_link_libraries(BP_2022_Zappe glfw libglew_static ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARY})
