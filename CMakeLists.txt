@@ -19,9 +19,6 @@ include_directories(${GLEW_INCLUDE_DIRS})
 add_subdirectory(lib/glm)
 include_directories(${GLM_INCLUDE_DIRS})
 
-# Make shaders easier to find in src/graphics/shaders
-include_directories(${CMAKE_SOURCE_DIR}/src/graphics/shaders)
-
 add_executable(BP_2022_Zappe
     src/main.cpp
     src/maze/graph.cpp
