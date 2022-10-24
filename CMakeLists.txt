@@ -8,15 +8,15 @@ set(CMAKE_CXX_STANDARD 20)
 add_definitions(-DGLEW_STATIC)
 
 # Including GLFW
-add_subdirectory(glfw)
+add_subdirectory(lib/glfw)
 include_directories(${GLFW_INCLUDE_DIRS})
 
 # Including GLEW
-add_subdirectory(glew)
+add_subdirectory(lib/glew)
 include_directories(${GLEW_INCLUDE_DIRS})
 
 # Including GLM
-add_subdirectory(glm)
+add_subdirectory(lib/glm)
 include_directories(${GLM_INCLUDE_DIRS})
 
 add_executable(BP_2022_Zappe
