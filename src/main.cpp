@@ -1,51 +1,13 @@
-#include <malloc.h>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
+#include "graphics/shader.h"
 #include "graphics/drawing.h"
 #include "maze/graph.h"
 #include "maze/generator.h"
 
 int width = 1080;
 int height = 620;
-
-static unsigned int compile_shader(const std::string& source, unsigned int type) {
-    auto id = glCreateShader(type);
-    const char* src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-static unsigned int create_shader(const std::string& vertex_shader, const std::string& fragment_shader) {
-    auto program = glCreateProgram();
-    auto vs = compile_shader(vertex_shader, GL_VERTEX_SHADER);
-    auto fs = compile_shader(fragment_shader, GL_FRAGMENT_SHADER);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
 
 int main() {
     GLFWwindow* window;
@@ -86,33 +48,11 @@ int main() {
     Drawing::buffer_graph(paths, size_paths, buffer_paths);
     Drawing::buffer_graph(walls, size_walls, buffer_walls);
 
-    /* Create shader */
-    std::string vertex_shader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main() {\n"
-        " gl_Position = position;\n"
-        "}\n";
-    std::string fragment_shader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main() {\n"
-        " color = vec4(0.0, 0.0, 0.0, 1.0);\n"
-        "}\n";
-    auto shader = create_shader(vertex_shader, fragment_shader);
-    std::string fragment_shader_green =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main() {\n"
-        " color = vec4(0.0, 1.0, 0.0, 1.0);\n"
-        "}\n";
-    auto shader_green = create_shader(vertex_shader, fragment_shader_green);
+    /* Create shader_basic */
+    auto source_basic = Shader::parse_shader("../src/graphics/shaders/basic.shader");
+    auto shader_basic = Shader::create_shader(source_basic.vertex_source, source_basic.fragment_source);
+    auto source_green = Shader::parse_shader("../src/graphics/shaders/green.shader");
+    auto shader_green = Shader::create_shader(source_green.vertex_source, source_green.fragment_source);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -129,7 +69,7 @@ int main() {
         glDrawArrays(GL_LINES, 0, size_paths);
 
 //        glLineWidth(1.0f);
-        glUseProgram(shader);
+        glUseProgram(shader_basic);
         glBindBuffer(GL_ARRAY_BUFFER, buffer_walls);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
