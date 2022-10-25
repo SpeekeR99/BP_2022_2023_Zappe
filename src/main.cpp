@@ -40,7 +40,7 @@ int main() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     /* Generate maze */
-    auto paths = Generator::generate_maze_dfs(20, 11);
+    auto paths = Generator::generate_maze_dfs(width / 50 - 1, height / 50 - 1);
     auto walls = Graph::transform_paths_to_walls(paths);
 
     /* Buffer maze */
@@ -49,9 +49,9 @@ int main() {
     Drawing::buffer_graph(walls, size_walls, buffer_walls);
 
     /* Create shader_basic */
-    auto source_basic = Shader::parse_shader("../src/graphics/shaders/basic.shader");
+    auto source_basic = Shader::parse_shader("src/graphics/shaders/basic.shader");
     auto shader_basic = Shader::create_shader(source_basic.vertex_source, source_basic.fragment_source);
-    auto source_green = Shader::parse_shader("../src/graphics/shaders/green.shader");
+    auto source_green = Shader::parse_shader("src/graphics/shaders/green.shader");
     auto shader_green = Shader::create_shader(source_green.vertex_source, source_green.fragment_source);
 
     /* Loop until the user closes the window */

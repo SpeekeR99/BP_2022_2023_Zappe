@@ -1,9 +1,9 @@
-[submodule "glfw"]
+[submodule "lib/glfw"]
 	path = lib/glfw
 	url = http://github.com/glfw/glfw.git
-[submodule "glew"]
+[submodule "lib/glew"]
 	path = lib/glew
-	url = https://github.com/Perlmint/glew-cmake.git
-[submodule "glm"]
+	url = https://github.com/omniavinco/glew-cmake
+[submodule "lib/glm"]
 	path = lib/glm
 	url = https://github.com/g-truc/glm.git
