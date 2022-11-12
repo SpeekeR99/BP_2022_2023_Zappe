@@ -1,11 +1,8 @@
 #include "drawing.h"
 
-int window_width = 1080;
-int window_height = 620;
-
 void Drawing::transform_x_y_to_opengl(int x, int y, float &x_opengl, float &y_opengl) {
-    x_opengl = static_cast<float>(x) / static_cast<float>(static_cast<double>(window_width) / 2) - 1.0f;
-    y_opengl =  -1 * (static_cast<float>(y) / static_cast<float>(static_cast<double>(window_height) / 2) - 1.0f);
+    x_opengl = static_cast<float>(x) / static_cast<float>(static_cast<double>(WINDOW_WIDTH) / 2) - 1.0f;
+    y_opengl =  -1 * (static_cast<float>(y) / static_cast<float>(static_cast<double>(WINDOW_HEIGHT) / 2) - 1.0f);
 }
 
 void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, float &green, float &blue) {

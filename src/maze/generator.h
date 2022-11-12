@@ -8,5 +8,5 @@
 
 class Generator {
 public:
-    static std::shared_ptr<Graph> generate_maze_dfs(int width, int height);
+    static std::shared_ptr<Graph> generate_maze_dfs(std::shared_ptr<Graph> &maze);
 };

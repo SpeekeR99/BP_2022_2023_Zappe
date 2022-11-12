@@ -1,10 +1,10 @@
 #include "generator.h"
 
-std::shared_ptr<Graph> Generator::generate_maze_dfs(int width, int height) {
+std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze) {
     std::default_random_engine gen{static_cast<long unsigned int>(time(nullptr))};
     std::uniform_int_distribution<> dis(0, RAND_MAX);
 
-    auto to_be_removed_paths = Graph::create_orthogonal_grid_graph(width, height);
+    auto to_be_removed_paths = Graph::create_orthogonal_grid_graph(maze->get_width(), maze->get_height());
 
     std::vector<int> stack;
     std::vector<bool> visited(to_be_removed_paths->get_v(), false);
@@ -33,7 +33,6 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(int width, int height) {
         }
     }
 
-    auto maze = Graph::create_orthogonal_grid_graph(width, height);
     for (int i = 0; i < maze->get_v(); i++) {
         for (int j : maze->get_adj()[i]) {
             if (to_be_removed_paths->is_adjacent(i, j)) {

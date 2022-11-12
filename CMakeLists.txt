@@ -31,6 +31,6 @@ add_executable(BP_2022_Zappe
     src/maze/generator.h
     src/graphics/shader.cpp
     src/graphics/shader.h
-)
+        src/const.h)
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static glm ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${GLM_LIBRARIES} ${OPENGL_LIBRARY})

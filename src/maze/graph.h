@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include "GLFW/glfw3.h"
+#include "../const.h"
 #include "node.h"
 
 class Graph {
@@ -34,5 +35,4 @@ public:
 
     static std::shared_ptr<Graph> create_orthogonal_grid_graph(int width, int height);
     static std::shared_ptr<Graph> create_hexagonal_grid_graph(int width, int height);
-    static std::shared_ptr<Graph> transform_paths_to_walls(const std::shared_ptr<Graph>& maze_paths);
 };
