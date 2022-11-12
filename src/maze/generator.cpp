@@ -4,7 +4,7 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
     std::default_random_engine gen{static_cast<long unsigned int>(time(nullptr))};
     std::uniform_int_distribution<> dis(0, RAND_MAX);
 
-    auto to_be_removed_paths = Graph::create_orthogonal_grid_graph(maze->get_width(), maze->get_height());
+    auto to_be_removed_paths = maze->create_copy();
 
     std::vector<int> stack;
     std::vector<bool> visited(to_be_removed_paths->get_v(), false);

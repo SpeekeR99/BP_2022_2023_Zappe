@@ -33,6 +33,7 @@ public:
 
     void print_adj() const;
 
+    std::shared_ptr<Graph> create_copy() const;
     static std::shared_ptr<Graph> create_orthogonal_grid_graph(int width, int height);
     static std::shared_ptr<Graph> create_hexagonal_grid_graph(int width, int height);
 };

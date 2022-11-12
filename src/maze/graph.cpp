@@ -68,6 +68,15 @@ void Graph::print_adj() const {
     }
 }
 
+std::shared_ptr<Graph> Graph::create_copy() const {
+    auto copy = std::make_unique<Graph>(width, height);
+    for (int i = 0; i < v; i++) {
+        copy->adj[i] = adj[i];
+    }
+    copy->nodes = nodes;
+    return copy;
+}
+
 std::shared_ptr<Graph> Graph::create_orthogonal_grid_graph(int width, int height) {
     auto grid_graph = std::make_shared<Graph>(width, height);
     for (int i = 0; i < width; i++) {
