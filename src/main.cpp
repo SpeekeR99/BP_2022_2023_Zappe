@@ -63,6 +63,9 @@ int main() {
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
         glDrawArrays(GL_LINES, 0, size_paths);
 
+        for (auto &node : maze->get_nodes())
+            Drawing::draw_circle(node->get_x(), node->get_y());
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
         glfwSwapInterval(1);

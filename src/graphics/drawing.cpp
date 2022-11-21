@@ -2,7 +2,7 @@
 
 void Drawing::transform_x_y_to_opengl(int x, int y, float &x_opengl, float &y_opengl) {
     x_opengl = static_cast<float>(x) / static_cast<float>(static_cast<double>(WINDOW_WIDTH) / 2) - 1.0f;
-    y_opengl =  -1 * (static_cast<float>(y) / static_cast<float>(static_cast<double>(WINDOW_HEIGHT) / 2) - 1.0f);
+    y_opengl = -1 * (static_cast<float>(y) / static_cast<float>(static_cast<double>(WINDOW_HEIGHT) / 2) - 1.0f);
 }
 
 void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, float &green, float &blue) {
@@ -11,7 +11,25 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
     blue = static_cast<float>(color[2]) / 255.0f;
 }
 
-void Drawing::buffer_graph(const std::shared_ptr<Graph>& graph, int &size, int &buffer) {
+void Drawing::draw_circle(int x, int y) {
+    float x_opengl, y_opengl;
+    transform_x_y_to_opengl(x, y, x_opengl, y_opengl);
+    float radius = static_cast<float>(LINE_WIDTH) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT));
+    int num_segments = 40;
+
+    glBegin(GL_TRIANGLE_FAN);
+
+    glVertex2f(x_opengl, y_opengl); // Center
+    for (int i = 0; i <= num_segments; i++)
+        glVertex2f(
+                static_cast<float>(radius * cos(2 * PI * i / num_segments) + x_opengl),
+                static_cast<float>(radius * sin(2 * PI * i / num_segments) + y_opengl)
+        );
+
+    glEnd();
+}
+
+void Drawing::buffer_graph(const std::shared_ptr<Graph> &graph, int &size, int &buffer) {
     std::vector<float> points;
 
     for (int i = 0; i < graph->get_v(); i++) {

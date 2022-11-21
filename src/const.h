@@ -1,5 +1,6 @@
 #pragma once
 
+constexpr double PI = 3.14159265359;
 constexpr int WINDOW_WIDTH = 1080;
 constexpr int WINDOW_HEIGHT = 620;
 constexpr int GRID_SIZE = 25;
