@@ -14,7 +14,22 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
 void Drawing::draw_circle(int x, int y) {
     float x_opengl, y_opengl;
     transform_x_y_to_opengl(x, y, x_opengl, y_opengl);
-    float radius = static_cast<float>(LINE_WIDTH) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT));
+    float radius = static_cast<float>(GRID_SIZE) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT));
+    float radius_x, radius_y;
+    if (WINDOW_WIDTH > WINDOW_HEIGHT) {
+        radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
+                   (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+    }
+    else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
+        radius_x = radius * (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)) *
+                   (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
+        radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
+    }
+    else {
+        radius_x = radius / 2.0f;
+        radius_y = radius / 2.0f;
+    }
     int num_segments = 40;
 
     glBegin(GL_TRIANGLE_FAN);
@@ -22,8 +37,8 @@ void Drawing::draw_circle(int x, int y) {
     glVertex2f(x_opengl, y_opengl); // Center
     for (int i = 0; i <= num_segments; i++)
         glVertex2f(
-                static_cast<float>(radius * cos(2 * PI * i / num_segments) + x_opengl),
-                static_cast<float>(radius * sin(2 * PI * i / num_segments) + y_opengl)
+                static_cast<float>(radius_x * cos(2 * PI * i / num_segments) + x_opengl),
+                static_cast<float>(radius_y * sin(2 * PI * i / num_segments) + y_opengl)
         );
 
     glEnd();
