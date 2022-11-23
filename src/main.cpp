@@ -8,7 +8,7 @@
 #include "maze/generator.h"
 
 int main() {
-    GLFWwindow* window;
+    GLFWwindow *window;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -38,11 +38,11 @@ int main() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     /* Generate maze */
-    auto graph = Graph::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
+    auto graph = Graph::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
     auto maze = Generator::generate_maze_dfs(graph);
 
     /* Buffer maze */
-    int size_paths, buffer_paths, size_walls, buffer_walls;
+    int size_paths, buffer_paths;
     Drawing::buffer_graph(maze, size_paths, buffer_paths);
 
     /* Create shader_basic */
@@ -50,8 +50,7 @@ int main() {
     auto shader_basic = Shader::create_shader(source_basic.vertex_source, source_basic.fragment_source);
 
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -63,8 +62,12 @@ int main() {
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
         glDrawArrays(GL_LINES, 0, size_paths);
 
-        for (auto &node : maze->get_nodes())
-            Drawing::draw_circle(node->get_x(), node->get_y());
+        for (auto &node: maze->get_nodes())
+            Drawing::draw_circle(
+                    node->get_x(),
+                    node->get_y(),
+                    static_cast<float>(2 * LINE_WIDTH) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT))
+            );
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

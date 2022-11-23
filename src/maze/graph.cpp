@@ -35,18 +35,8 @@ void Graph::add_edge(const std::shared_ptr<Node>& src, const std::shared_ptr<Nod
 }
 
 void Graph::remove_edge(int src, int dest) const {
-    for (int i = 0; i < adj[src].size(); i++) {
-        if (adj[src][i] == dest) {
-            adj[src].erase(adj[src].begin() + i);
-            break;
-        }
-    }
-    for (int i = 0; i < adj[dest].size(); i++) {
-        if (adj[dest][i] == src) {
-            adj[dest].erase(adj[dest].begin() + i);
-            break;
-        }
-    }
+    adj[src].erase(std::remove(adj[src].begin(), adj[src].end(), dest), adj[src].end());
+    adj[dest].erase(std::remove(adj[dest].begin(), adj[dest].end(), src), adj[dest].end());
 }
 
 bool Graph::is_adjacent(int src, int dest) const {
@@ -82,14 +72,15 @@ std::shared_ptr<Graph> Graph::create_orthogonal_grid_graph(int width, int height
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < height; j++) {
             int v = i * height + j;
-            auto node = std::make_shared<Node>(v, i * GRID_SIZE + GRID_SIZE, j * GRID_SIZE + GRID_SIZE);
+            int x = i * GRID_SIZE + GRID_SIZE;
+            int y = j * GRID_SIZE + GRID_SIZE;
+            auto node = std::make_shared<Node>(v, x, y);
             grid_graph->nodes[v] = node;
-            if (i > 0) {
+
+            if (i > 0)
                 grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j]);
-            }
-            if (j > 0) {
+            if (j > 0)
                 grid_graph->add_edge(node, grid_graph->nodes[i * height + j - 1]);
-            }
         }
     }
     return grid_graph;
@@ -102,23 +93,20 @@ std::shared_ptr<Graph> Graph::create_hexagonal_grid_graph(int width, int height)
             int v = i * height + j;
             int x = i * GRID_SIZE + GRID_SIZE;
             int y = j * GRID_SIZE + GRID_SIZE;
-            if (i % 2 == 1) {
+            if (i % 2 == 1)
                 y += GRID_SIZE / 2;
-            }
             auto node = std::make_shared<Node>(v, x, y);
             grid_graph->nodes[v] = node;
+
             if (i > 0) {
                 grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j]);
-                if (i > 1 && j > 0) {
-                    grid_graph->add_edge(node, grid_graph->nodes[(i - 2) * height + j - 1]);
-                }
-                if (i > 1 && j < height - 1) {
-                    grid_graph->add_edge(node, grid_graph->nodes[(i - 2) * height + j + 1]);
-                }
+                if (i % 2)
+                    grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j + 1]);
+                else if (j > 0)
+                    grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j - 1]);
             }
-            if (j > 0) {
+            if (j > 0)
                 grid_graph->add_edge(node, grid_graph->nodes[i * height + j - 1]);
-            }
         }
     }
     return grid_graph;

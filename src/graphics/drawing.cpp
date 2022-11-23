@@ -11,10 +11,9 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
     blue = static_cast<float>(color[2]) / 255.0f;
 }
 
-void Drawing::draw_circle(int x, int y) {
+void Drawing::draw_circle(int x, int y, float radius) {
     float x_opengl, y_opengl;
     transform_x_y_to_opengl(x, y, x_opengl, y_opengl);
-    float radius = static_cast<float>(GRID_SIZE) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT));
     float radius_x, radius_y;
     if (WINDOW_WIDTH > WINDOW_HEIGHT) {
         radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));

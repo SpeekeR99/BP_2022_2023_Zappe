@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include <random>
-#include <ctime>
+#include <chrono>
 #include "graph.h"
 
 class Generator {
