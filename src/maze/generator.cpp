@@ -4,10 +4,7 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
     std::default_random_engine gen(std::chrono::system_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> dis(0, RAND_MAX);
 
-    auto result = maze->create_copy();
-    for (int i = 0; i < result->get_v(); i++)
-        for (int j = 0; j < result->get_adj()[i].size(); j++)
-            result->remove_edge(i, result->get_adj()[i][j]);
+    auto to_be_removed_paths = maze->create_copy();
 
     std::vector<int> stack;
     std::vector<bool> visited(maze->get_v(), false);
@@ -17,7 +14,7 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
 
     while (!stack.empty()) {
         std::vector<int> neighbors;
-        for (int i : maze->get_adj()[current])
+        for (int i : to_be_removed_paths->get_adj()[current])
             if (!visited[i])
                 neighbors.push_back(i);
 
@@ -28,12 +25,20 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
 
         } else {
             int random_neighbor = neighbors[dis(gen) % neighbors.size()];
-            result->add_edge(maze->get_nodes()[current], maze->get_nodes()[random_neighbor]);
+            to_be_removed_paths->remove_edge(current, random_neighbor);
             stack.push_back(random_neighbor);
             current = random_neighbor;
             visited[current] = true;
         }
     }
 
-    return result;
+    for (int i = 0; i < maze->get_v(); i++) {
+        for (int j : maze->get_adj()[i]) {
+            if (to_be_removed_paths->is_adjacent(i, j)) {
+                maze->remove_edge(i, j);
+            }
+        }
+    }
+
+    return maze;
 }

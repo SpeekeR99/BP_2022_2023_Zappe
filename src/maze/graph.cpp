@@ -98,15 +98,14 @@ std::shared_ptr<Graph> Graph::create_hexagonal_grid_graph(int width, int height)
             auto node = std::make_shared<Node>(v, x, y);
             grid_graph->nodes[v] = node;
 
-            if (i > 0) {
+            if (i > 0)
                 grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j]);
-                if (i % 2)
-                    grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j + 1]);
-                else if (j > 0)
-                    grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j - 1]);
-            }
             if (j > 0)
                 grid_graph->add_edge(node, grid_graph->nodes[i * height + j - 1]);
+            if (i > 0 && j > 0 && i % 2 == 0)
+                grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j - 1]);
+            if (i > 0 && j < height - 1 && i % 2 == 1)
+                grid_graph->add_edge(node, grid_graph->nodes[(i - 1) * height + j + 1]);
         }
     }
     return grid_graph;
