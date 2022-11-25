@@ -34,11 +34,11 @@ int main() {
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLEW version: " << glewGetString(GLEW_VERSION) << std::endl;
 
-    /* Black background */
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    /* White background */
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     /* Generate maze */
-    auto graph = Graph::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
+    auto graph = Graph::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
     auto maze = Generator::generate_maze_dfs(graph);
 
     /* Buffer maze */
@@ -48,6 +48,8 @@ int main() {
     /* Create shader_basic */
     auto source_basic = Shader::parse_shader("src/graphics/shaders/basic.shader");
     auto shader_basic = Shader::create_shader(source_basic.vertex_source, source_basic.fragment_source);
+    auto source_black = Shader::parse_shader("src/graphics/shaders/black.shader");
+    auto shader_black = Shader::create_shader(source_black.vertex_source, source_black.fragment_source);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -56,7 +58,7 @@ int main() {
 
         /* Draw maze */
         glLineWidth(LINE_WIDTH);
-        glUseProgram(shader_basic);
+        glUseProgram(shader_black);
         glBindBuffer(GL_ARRAY_BUFFER, buffer_paths);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
@@ -67,6 +69,20 @@ int main() {
                     node->get_x(),
                     node->get_y(),
                     static_cast<float>(2 * LINE_WIDTH) / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT))
+            );
+
+        glLineWidth(LINE_WIDTH * 0.5f);
+        glUseProgram(shader_basic);
+        glBindBuffer(GL_ARRAY_BUFFER, buffer_paths);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+        glDrawArrays(GL_LINES, 0, size_paths);
+
+        for (auto &node: maze->get_nodes())
+            Drawing::draw_circle(
+                    node->get_x(),
+                    node->get_y(),
+                    static_cast<float>(2 * LINE_WIDTH) * 0.5f / static_cast<float>(std::max(WINDOW_WIDTH, WINDOW_HEIGHT))
             );
 
         /* Swap front and back buffers */

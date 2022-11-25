@@ -30,8 +30,10 @@ std::vector<std::shared_ptr<Node>> Graph::get_nodes() const {
 }
 
 void Graph::add_edge(const std::shared_ptr<Node>& src, const std::shared_ptr<Node>& dest) {
-    adj[src->get_v()].push_back(dest->get_v());
-    adj[dest->get_v()].push_back(src->get_v());
+    if (std::find(adj[src->get_v()].begin(), adj[src->get_v()].end(), dest->get_v()) == adj[src->get_v()].end())
+        adj[src->get_v()].push_back(dest->get_v());
+    if (std::find(adj[dest->get_v()].begin(), adj[dest->get_v()].end(), src->get_v()) == adj[dest->get_v()].end())
+        adj[dest->get_v()].push_back(src->get_v());
 }
 
 void Graph::remove_edge(int src, int dest) const {
