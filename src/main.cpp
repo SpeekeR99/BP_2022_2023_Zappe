@@ -7,7 +7,7 @@
 #include "maze/generator.h"
 #include "player.h"
 
-std::unique_ptr<Player> player = std::make_unique<Player>(GRID_SIZE, GRID_SIZE);
+std::unique_ptr<Player> player;
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     // Escape exits the app
@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
     // Generate maze
     auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
     auto maze = Generator::generate_maze_dfs(graph);
+    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
 
     // Buffer maze
     int size_paths, buffer_paths;
@@ -125,10 +126,12 @@ int main(int argc, char **argv) {
     auto source_walls = Shader::parse_shader("src/graphics/shaders/walls.shader");
     auto source_green = Shader::parse_shader("src/graphics/shaders/green.shader");
     auto source_red = Shader::parse_shader("src/graphics/shaders/red.shader");
+    auto source_blue = Shader::parse_shader("src/graphics/shaders/blue.shader");
     auto shader_paths = Shader::create_shader(source_paths.vertex_source, source_paths.fragment_source);
     auto shader_walls = Shader::create_shader(source_walls.vertex_source, source_walls.fragment_source);
     auto shader_green = Shader::create_shader(source_green.vertex_source, source_green.fragment_source);
     auto shader_red = Shader::create_shader(source_red.vertex_source, source_red.fragment_source);
+    auto shader_blue = Shader::create_shader(source_blue.vertex_source, source_blue.fragment_source);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
@@ -154,6 +157,11 @@ int main(int argc, char **argv) {
         for (auto &node: maze->get_nodes())
             Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
 
+        // Color the start and end nodes
+        glUseProgram(shader_blue);
+        Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
+        Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
+
         // Draw path that the player has walked
         glLineWidth(2.0f);
         glUseProgram(shader_red);
@@ -164,6 +172,12 @@ int main(int argc, char **argv) {
         // Draw player
         glUseProgram(shader_green);
         Drawing::draw_circle(player->get_x(), player->get_y(), PLAYER_RADIUS);
+
+        // Check if the player has reached the end
+        if (abs(player->get_x() - maze->get_nodes()[maze->get_v() - 1]->get_x()) < 10 &&
+            abs(player->get_y() - maze->get_nodes()[maze->get_v() - 1]->get_y()) < 10) {
+            std::cout << "Maze solved!" << std::endl;
+        }
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
