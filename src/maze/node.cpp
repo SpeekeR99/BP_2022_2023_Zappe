@@ -1,7 +1,7 @@
 #include "node.h"
 
 Node::Node(int v, int x, int y) : v{v}, x{x}, y{y} {
-    // empty
+    // Nothing to do here :)
 }
 
 int Node::get_v() const {

@@ -11,24 +11,31 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
     blue = static_cast<float>(color[2]) / 255.0f;
 }
 
+void Drawing::draw_line(int x1, int y1, int x2, int y2) {
+    float x1_opengl, y1_opengl, x2_opengl, y2_opengl;
+    transform_x_y_to_opengl(x1, y1, x1_opengl, y1_opengl);
+    transform_x_y_to_opengl(x2, y2, x2_opengl, y2_opengl);
+
+    glBegin(GL_LINES);
+    glVertex2f(x1_opengl, y1_opengl);
+    glVertex2f(x2_opengl, y2_opengl);
+    glEnd();
+}
+
 void Drawing::draw_circle(int x, int y, float radius) {
     float x_opengl, y_opengl;
     transform_x_y_to_opengl(x, y, x_opengl, y_opengl);
     float radius_x = radius / 2.0f, radius_y = radius / 2.0f;
-//    if (WINDOW_WIDTH > WINDOW_HEIGHT) {
-//        radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-//        radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
-//                   (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-//    }
-//    else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
-//        radius_x = radius * (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)) *
-//                   (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
-//        radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
-//    }
-//    else {
-//        radius_x = radius / 2.0f;
-//        radius_y = radius / 2.0f;
-//    }
+    if (WINDOW_WIDTH > WINDOW_HEIGHT) {
+        radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
+                   (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+    }
+    else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
+        radius_x = radius * (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)) *
+                   (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
+        radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
+    }
     int num_segments = 40;
 
     glBegin(GL_TRIANGLE_FAN);
@@ -66,8 +73,8 @@ void Drawing::buffer_graph(const std::shared_ptr<Graph> &graph, int &size, int &
     unsigned int buffer_edges;
     glGenBuffers(1, &buffer_edges);
     glBindBuffer(GL_ARRAY_BUFFER, buffer_edges);
-    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), &points[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<int>(points.size() * sizeof(float)), &points[0], GL_STATIC_DRAW);
 
-    size = points.size();
+    size = static_cast<int>(points.size());
     buffer = buffer_edges;
 }

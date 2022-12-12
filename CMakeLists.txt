@@ -33,6 +33,8 @@ add_executable(
     src/graphics/shader.cpp
     src/graphics/shader.h
     src/const.h
+    src/player.cpp
+    src/player.h
 )
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static glm ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${GLM_LIBRARIES} ${OPENGL_LIBRARY})
