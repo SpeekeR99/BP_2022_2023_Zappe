@@ -55,9 +55,13 @@ void Drawing::buffer_graph(const std::shared_ptr<Graph> &graph, int &size, int &
 
     for (int i = 0; i < graph->get_v(); i++) {
         auto node = graph->get_nodes()[i];
+        if (!node->is_alive())
+            continue;
 
         for (int &j: graph->get_adj()[i]) {
             auto adjacent_node = graph->get_nodes()[j];
+            if (!adjacent_node->is_alive())
+                continue;
 
             float x_start, y_start, x_end, y_end;
             transform_x_y_to_opengl(node->get_x(), node->get_y(), x_start, y_start);

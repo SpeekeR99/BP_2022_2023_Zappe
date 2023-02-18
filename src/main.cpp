@@ -9,6 +9,7 @@
 #include "player.h"
 
 std::unique_ptr<Player> player;
+bool paused = false;
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     // Escape exits the app
@@ -27,6 +28,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         new_x -= 10;
     if ((key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) && action == GLFW_PRESS)
         new_x += 10;
+
+    // Spaces for pausing the animation
+    if ((key == GLFW_KEY_SPACE) && action == GLFW_PRESS)
+        paused = !paused;
 
     // Check if the new position is valid
     GLubyte pixel[3];
@@ -114,11 +119,12 @@ int main(int argc, char **argv) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Generate maze
-    auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
+//    auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
+    auto graph = Generator::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
 //    auto maze = Generator::generate_maze_dfs(graph);
 //    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
 
-    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B02S13", graph);
+    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B3/S23", graph);
     player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
 
     // Buffer maze
@@ -143,6 +149,11 @@ int main(int argc, char **argv) {
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
+        if (paused) {
+            glfwPollEvents();
+            continue;
+        }
+
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -173,7 +184,8 @@ int main(int argc, char **argv) {
 //        for (auto &node: maze->get_nodes())
 //            Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
         for (auto &node: ca->get_graph()->get_nodes())
-            Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
+            if (node->is_alive())
+                Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
 
         // Color the start and end nodes
         glUseProgram(shader_blue);

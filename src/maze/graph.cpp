@@ -62,6 +62,7 @@ std::shared_ptr<Graph> Graph::create_copy() const {
     auto copy = std::make_unique<Graph>(width, height);
     for (int i = 0; i < v; i++)
         copy->adj[i] = adj[i];
-    copy->nodes = nodes;
+    for (auto& node: nodes)
+        copy->set_node(node->get_v(), node->get_x(), node->get_y());
     return copy;
 }
