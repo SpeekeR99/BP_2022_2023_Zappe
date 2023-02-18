@@ -35,6 +35,6 @@ add_executable(
     src/const.h
     src/player.cpp
     src/player.h
-)
+        src/maze/cellular_automata.cpp src/maze/cellular_automata.h)
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static glm ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${GLM_LIBRARIES} ${OPENGL_LIBRARY})
