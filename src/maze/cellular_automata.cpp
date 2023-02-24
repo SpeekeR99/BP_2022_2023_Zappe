@@ -1,9 +1,12 @@
 #include "cellular_automata.h"
 
-CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph) : rule_string(std::move(rules)), born_rule(), survive_rule() {
+CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood) : rule_string(std::move(rules)), born_rule(), survive_rule() {
     original_grid_graph = orig_graph;
     graph = orig_graph->create_copy();
-    laplacian_graph = Generator::create_orthogonal_grid_graph_laplacian(graph->get_width(), graph->get_height(), false);
+    if (neighborhood)
+        neighborhood_graph = neighborhood->create_copy();
+    else
+        neighborhood_graph = orig_graph->create_copy();
 
     std::default_random_engine gen(std::chrono::system_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> dis(0, 1);
@@ -39,7 +42,7 @@ void CellularAutomata::next_generation() {
     for (int i = 0; i < graph->get_v(); i++) {
         auto alive_neighbors = 0;
         for (int j = 0; j < graph->get_v(); j++) {
-            if (laplacian_graph->is_adjacent(i, j) && graph->get_nodes()[j]->is_alive())
+            if (neighborhood_graph->is_adjacent(i, j) && graph->get_nodes()[j]->is_alive())
                 alive_neighbors++;
         }
 

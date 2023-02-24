@@ -8,13 +8,13 @@ class CellularAutomata {
 private:
     std::shared_ptr<Graph> original_grid_graph;
     std::shared_ptr<Graph> graph;
-    std::shared_ptr<Graph> laplacian_graph;
+    std::shared_ptr<Graph> neighborhood_graph;
     std::string rule_string;
     std::vector<int> born_rule;
     std::vector<int> survive_rule;
 
 public:
-    CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph);
+    CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood = nullptr);
 
     std::shared_ptr<Graph> get_graph();
 

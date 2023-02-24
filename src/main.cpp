@@ -123,8 +123,9 @@ int main(int argc, char **argv) {
     auto graph = Generator::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
 //    auto maze = Generator::generate_maze_dfs(graph);
 //    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
+    auto neighbourhood = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
 
-    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B3/S23", graph);
+    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B3/S23", graph, neighbourhood);
     player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
 
     // Buffer maze
