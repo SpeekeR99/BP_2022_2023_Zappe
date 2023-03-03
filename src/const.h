@@ -1,9 +1,9 @@
 #pragma once
 
 constexpr double PI = 3.14159265359;
-constexpr int WINDOW_WIDTH = 620;
+constexpr int WINDOW_WIDTH = 1000;
 constexpr int WINDOW_HEIGHT = 620;
-constexpr int GRID_SIZE = 20;
+constexpr int GRID_SIZE = 50;
 constexpr float BLACK_LINE_WIDTH = GRID_SIZE * 1.33f;
 constexpr float WHITE_LINE_WIDTH = GRID_SIZE * 0.5f;
 constexpr float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
