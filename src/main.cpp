@@ -138,11 +138,17 @@ int main(int argc, char **argv) {
     auto is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                     {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                      maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+//    auto is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+//                                                   {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+//                                                    ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
     std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
 
     auto solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                              {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                               maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+//    auto solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+//                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+//                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
 
     // Buffer maze
     int size_paths, buffer_paths;
@@ -178,6 +184,14 @@ int main(int argc, char **argv) {
 //            ca->next_generation();
 //            Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
 //            now = std::chrono::high_resolution_clock::now();
+//
+//            is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+//                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+//                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+//            std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
+//            solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+//                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+//                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
 //        }
 
         // Draw maze
@@ -213,7 +227,7 @@ int main(int argc, char **argv) {
 
         // Draw solution if wanted
         if (is_solvable && show_solution) {
-            glLineWidth(5.0f);
+            glLineWidth(0.33f * WHITE_LINE_WIDTH);
             glUseProgram(shader_blue);
             for (int i = 0; i < solved_path.size() - 1; i++)
                 Drawing::draw_line(solved_path[i].first, solved_path[i].second,

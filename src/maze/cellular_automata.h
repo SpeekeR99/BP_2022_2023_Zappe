@@ -16,7 +16,7 @@ private:
 public:
     CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood = nullptr);
 
-    std::shared_ptr<Graph> get_graph();
+    std::shared_ptr<Graph> &get_graph();
 
     void next_generation();
 };

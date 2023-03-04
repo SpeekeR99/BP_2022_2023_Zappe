@@ -33,7 +33,7 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
     }
 }
 
-std::shared_ptr<Graph> CellularAutomata::get_graph() {
+std::shared_ptr<Graph> &CellularAutomata::get_graph() {
     return graph;
 }
 

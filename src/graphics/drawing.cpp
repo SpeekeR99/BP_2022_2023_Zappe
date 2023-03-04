@@ -30,8 +30,7 @@ void Drawing::draw_circle(int x, int y, float radius) {
         radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
         radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
                    (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-    }
-    else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
+    } else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
         radius_x = radius * (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)) *
                    (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
         radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
@@ -46,7 +45,6 @@ void Drawing::draw_circle(int x, int y, float radius) {
                 static_cast<float>(radius_x * cos(2 * PI * i / num_segments) + x_opengl),
                 static_cast<float>(radius_y * sin(2 * PI * i / num_segments) + y_opengl)
         );
-
     glEnd();
 }
 
