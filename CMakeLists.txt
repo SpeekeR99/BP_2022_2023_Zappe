@@ -15,10 +15,6 @@ include_directories(${GLFW_INCLUDE_DIRS})
 add_subdirectory(lib/glew)
 include_directories(${GLEW_INCLUDE_DIRS})
 
-# Including GLM
-add_subdirectory(lib/glm)
-include_directories(${GLM_INCLUDE_DIRS})
-
 add_executable(
     BP_2022_Zappe
     src/main.cpp
@@ -41,4 +37,4 @@ add_executable(
     src/maze/solver.h
 )
 
-target_link_libraries(BP_2022_Zappe glfw libglew_static glm ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${GLM_LIBRARIES} ${OPENGL_LIBRARY})
+target_link_libraries(BP_2022_Zappe glfw libglew_static ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARY})

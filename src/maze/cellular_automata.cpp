@@ -1,6 +1,6 @@
 #include "cellular_automata.h"
 
-CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood) : rule_string(std::move(rules)), born_rule(), survive_rule() {
+CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood, const int init_square_w) : rule_string(std::move(rules)), born_rule(), survive_rule() {
     original_grid_graph = orig_graph;
     graph = orig_graph->create_copy();
     if (neighborhood)
@@ -10,9 +10,19 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
 
     std::default_random_engine gen(std::chrono::system_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> dis(0, 1);
+    auto width = graph->get_width();
+    if (init_square_w > -1)
+        width = init_square_w;
 
     for (int i = 0; i < graph->get_v(); i++) {
-        if (dis(gen) == 1) {
+        if (i / graph->get_width() < width && i % graph->get_width() < width) {
+            if (dis(gen) == 1) {
+                graph->get_nodes()[i]->set_alive(false);
+                for (int j = 0; j < graph->get_v(); j++)
+                    graph->remove_edge(i, j);
+            }
+        }
+        else {
             graph->get_nodes()[i]->set_alive(false);
             for (int j = 0; j < graph->get_v(); j++)
                 graph->remove_edge(i, j);
@@ -31,6 +41,8 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
             }
         }
     }
+
+    graph->get_nodes()[0]->set_alive(true);
 }
 
 std::shared_ptr<Graph> &CellularAutomata::get_graph() {
@@ -71,4 +83,5 @@ void CellularAutomata::next_generation() {
     }
 
     graph = new_graph;
+    graph->get_nodes()[0]->set_alive(true);
 }

@@ -14,7 +14,7 @@ private:
     std::vector<int> survive_rule;
 
 public:
-    CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood = nullptr);
+    CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood = nullptr, const int init_square_w = -1);
 
     std::shared_ptr<Graph> &get_graph();
 

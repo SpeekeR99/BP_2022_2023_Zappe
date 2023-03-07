@@ -1,6 +1,5 @@
-#include "GL/glew.h"
-#include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "const.h"
 #include "graphics/shader.h"
 #include "graphics/drawing.h"
@@ -127,34 +126,42 @@ int main(int argc, char **argv) {
     // Generate maze
     auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
 //    auto graph = Generator::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
-    auto maze = Generator::generate_maze_dfs(graph);
-    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
+//    auto maze = Generator::generate_maze_dfs(graph);
+//    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
 //    auto neighbourhood = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
 
-//    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B3/S1234", graph, neighbourhood);
-//    player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
+    // Orthogonal grid graph
+    // B3/S1234
+    // B37/S1234
+    // B3/S12345
+    // B7/S12345
+
+    // Hexagonal grid graph
+    // B24/S12345
+    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B24/S1234", graph, nullptr, 10);
+    player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
 
     // Solve maze
-    auto is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
-                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
-//    auto is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-//                                                   {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-//                                                    ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+//    auto is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+//                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+//                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+    auto is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                   {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                    ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
     std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
 
-    auto solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
-                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
-//    auto solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-//                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-//                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+//    auto solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+//                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+//                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+    auto solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
 
     // Buffer maze
     int size_paths, buffer_paths;
-    Drawing::buffer_graph(maze, size_paths, buffer_paths);
+//    Drawing::buffer_graph(maze, size_paths, buffer_paths);
 
-//    Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
+    Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
 
     // Load shaders
     auto source_paths = Shader::parse_shader("src/graphics/shaders/paths.shader");
@@ -172,27 +179,22 @@ int main(int argc, char **argv) {
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
-        if (paused) {
-            glfwPollEvents();
-            continue;
-        }
-
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
-//        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count() > 1000) {
-//            ca->next_generation();
-//            Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
-//            now = std::chrono::high_resolution_clock::now();
-//
-//            is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-//                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-//                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-//            std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
-//            solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-//                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-//                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-//        }
+        if (!paused && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count() > 100) {
+            ca->next_generation();
+            Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
+            now = std::chrono::high_resolution_clock::now();
+
+            is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+            std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
+            solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
 
         // Draw maze
         glLineWidth(BLACK_LINE_WIDTH);
@@ -201,10 +203,10 @@ int main(int argc, char **argv) {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
         glDrawArrays(GL_LINES, 0, size_paths);
-        for (auto &node: maze->get_nodes())
-            Drawing::draw_circle(node->get_x(), node->get_y(), BLACK_NODE_RADIUS);
-//        for (auto &node: ca->get_graph()->get_nodes())
+//        for (auto &node: maze->get_nodes())
 //            Drawing::draw_circle(node->get_x(), node->get_y(), BLACK_NODE_RADIUS);
+        for (auto &node: ca->get_graph()->get_nodes())
+            Drawing::draw_circle(node->get_x(), node->get_y(), BLACK_NODE_RADIUS);
 
         glLineWidth(WHITE_LINE_WIDTH);
         glUseProgram(shader_paths);
@@ -212,18 +214,18 @@ int main(int argc, char **argv) {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
         glDrawArrays(GL_LINES, 0, size_paths);
-        for (auto &node: maze->get_nodes())
-            Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
-//        for (auto &node: ca->get_graph()->get_nodes())
-//            if (node->is_alive())
-//                Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
+//        for (auto &node: maze->get_nodes())
+//            Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
+        for (auto &node: ca->get_graph()->get_nodes())
+            if (node->is_alive())
+                Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
 
         // Color the start and end nodes
         glUseProgram(shader_blue);
-        Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
-        Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
-//        Drawing::draw_circle(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
-//        Drawing::draw_circle(ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x(), ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
+//        Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
+//        Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
+        Drawing::draw_circle(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
+        Drawing::draw_circle(ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x(), ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
 
         // Draw solution if wanted
         if (is_solvable && show_solution) {

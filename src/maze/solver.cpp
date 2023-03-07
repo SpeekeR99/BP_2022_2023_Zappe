@@ -26,7 +26,7 @@ bool Solver::is_maze_solvable_bfs(std::shared_ptr<Graph> &maze, const std::pair<
 
         std::vector<int> neighbors;
         for (auto &node: maze->get_nodes()) {
-            if (maze->is_adjacent(current, node->get_v()) && !visited[node->get_v()]) {
+            if (maze->is_adjacent(current, node->get_v()) && !visited[node->get_v()] && maze->get_nodes()[node->get_v()]->is_alive()) {
                 neighbors.push_back(node->get_v());
             }
         }
@@ -72,7 +72,7 @@ std::vector<std::pair<int, int>> Solver::solve_maze_bfs(std::shared_ptr<Graph> &
 
         std::vector<int> neighbors;
         for (auto &node: maze->get_nodes()) {
-            if (maze->is_adjacent(current, node->get_v()) && !visited[node->get_v()]) {
+            if (maze->is_adjacent(current, node->get_v()) && !visited[node->get_v()] && maze->get_nodes()[node->get_v()]->is_alive()) {
                 neighbors.push_back(node->get_v());
             }
         }
