@@ -3,9 +3,10 @@
 #include <algorithm>
 
 constexpr double PI = 3.14159265359;
-constexpr int WINDOW_WIDTH = 800;
-constexpr int WINDOW_HEIGHT = 800;
-constexpr int GRID_SIZE = 25;
+constexpr int WINDOW_WIDTH = 1280;
+constexpr int WINDOW_HEIGHT = 720;
+constexpr int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
+constexpr int GRID_SIZE = 30;
 constexpr float BLACK_LINE_WIDTH = GRID_SIZE * 1.33f;
 constexpr float WHITE_LINE_WIDTH = GRID_SIZE * 0.5f;
 constexpr float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);

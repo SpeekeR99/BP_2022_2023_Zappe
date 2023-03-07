@@ -10,6 +10,7 @@
 #include "maze/solver.h"
 #include "maze/cellular_automata.h"
 #include "player.h"
+#include "imgui_internal.h"
 
 std::unique_ptr<Player> player;
 bool paused = false;
@@ -33,14 +34,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if ((key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) && action == GLFW_PRESS)
         new_x += 10;
 
-    // Spaces for pausing the animation
-    if ((key == GLFW_KEY_SPACE) && action == GLFW_PRESS)
-        paused = !paused;
-
-    // Enter for showing the solution
-    if ((key == GLFW_KEY_ENTER) && action == GLFW_PRESS)
-        show_solution = !show_solution;
-
     // Check if the new position is valid
     GLubyte pixel[3];
     glReadPixels(new_x , WINDOW_HEIGHT - new_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixel);
@@ -55,11 +48,11 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     auto new_y = static_cast<int>(ypos);
 
     // Check if the new position is valid
-    if (abs(new_x - player->get_x()) < 8 && abs(new_y - player->get_y()) < 8)
+    if (abs(new_x - player->get_x() + WINDOW_X_OFFSET) < 8 && abs(new_y - player->get_y()) < 8)
         return;
 
     // Check line of sight between player and cursor
-    int x0 = player->get_x();
+    int x0 = player->get_x() + WINDOW_X_OFFSET;
     int y0 = player->get_y();
     int x1 = new_x;
     int y1 = new_y;
@@ -89,7 +82,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         }
     }
 
-    player->move_to(new_x, new_y);
+    player->move_to(new_x - WINDOW_X_OFFSET, new_y);
 }
 
 static void glfw_error_callback(int error, const char* description) {
@@ -137,7 +130,7 @@ int main(int argc, char **argv) {
     //io.ConfigViewportsNoTaskBarIcon = true;
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
@@ -161,24 +154,24 @@ int main(int argc, char **argv) {
 
     // White background
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Generate maze
-    auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
-//    auto graph = Generator::create_orthogonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
+    auto graph = Generator::create_hexagonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
+//    auto graph = Generator::create_orthogonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, false);
 //    auto maze = Generator::generate_maze_dfs(graph);
 //    player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
-//    auto neighbourhood = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
+//    auto neighbourhood = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1);
 
     // Orthogonal grid graph
     // B3/S1234
     // B37/S1234
     // B3/S12345
-    // B7/S12345
+    // B37/S12345
 
     // Hexagonal grid graph
     // B24/S12345
-    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B24/S1234", graph, nullptr, 10);
+    // B24/S1234
+    std::shared_ptr<CellularAutomata> ca = std::make_shared<CellularAutomata>("B24/S1234", graph, nullptr, 5);
     player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
 
     // Solve maze
@@ -188,7 +181,6 @@ int main(int argc, char **argv) {
     auto is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                    {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-    std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
 
 //    auto solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
 //                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
@@ -239,7 +231,6 @@ int main(int argc, char **argv) {
             is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                        {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                         ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-            std::cout << "Is maze solvable: " << (is_solvable ? "Yes" : "No") << std::endl;
             solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                  {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                   ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
@@ -302,23 +293,111 @@ int main(int argc, char **argv) {
 //            std::cout << "Maze solved!" << std::endl;
 //        }
 
+//        {
+//            static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_AutoHideTabBar;
+//
+//            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+//
+//            ImGuiViewport* viewport = ImGui::GetMainViewport();
+//            ImGui::SetNextWindowPos(viewport->Pos);
+//            ImGui::SetNextWindowSize(viewport->Size);
+//            ImGui::SetNextWindowViewport(viewport->ID);
+//            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+//            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+//            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+//            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+//
+//            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+//                window_flags |= ImGuiWindowFlags_NoBackground ;
+//
+//            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+//            ImGui::Begin("DockSpace", nullptr, window_flags);
+//            ImGui::PopStyleVar();
+//            ImGui::PopStyleVar(2);
+//
+//            ImGuiIO& io = ImGui::GetIO();
+//            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+//                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+//                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+//
+//                static auto first_time = true;
+//                if (first_time) {
+//                    first_time = false;
+//
+//                    ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
+//                    ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+//                    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+//
+//                    auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, (float) (WINDOW_WIDTH - WINDOW_HEIGHT - static_cast<int>(GRID_SIZE / 2)) / WINDOW_WIDTH, nullptr, &dockspace_id);
+//
+//                    ImGui::DockBuilderDockWindow("Configuration", dock_id_left);
+//                    ImGui::DockBuilderDockWindow("Okno 2", dock_id_left);
+//                    ImGui::DockBuilderFinish(dockspace_id);
+//                }
+//            }
+//            ImGui::End();
+//
+//            {
+//                ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2((WINDOW_WIDTH - WINDOW_HEIGHT - static_cast<int>(GRID_SIZE / 2)), -1));
+//                ImGui::Begin("Configuration");
+//                ImGui::SliderFloat("Speed", &speed, 0.0f, 1.0f);
+//                ImGui::Checkbox("Paused", &paused);
+//                ImGui::Checkbox("Show Solution", &show_solution);
+//                is_solvable ? ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0,200,0,255)) : ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200,0,0,255));
+//                is_solvable ? ImGui::Text("Maze IS solvable") : ImGui::Text("Maze IS NOT solvable");
+//                ImGui::End();
+//            }
+//            {
+//                ImGui::Begin("Okno 2");
+//                ImGui::Text("Hello, world!");
+//                ImGui::End();
+//            }
+//        }
+
         {
-            ImGui::Begin("Config Window");
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::Begin("Configuration", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
+            int xpos, ypos;
+            glfwGetWindowPos(window, &xpos, &ypos);
+            ImGui::SetWindowPos(ImVec2((float) xpos, (float) ypos));
+            ImGui::SetWindowSize(ImVec2((float) (WINDOW_WIDTH - WINDOW_HEIGHT - (float) GRID_SIZE / 2), WINDOW_HEIGHT));
             ImGui::SliderFloat("Speed", &speed, 0.0f, 1.0f);
-            ImGui::Checkbox("Paused", &paused);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Paused", &paused);
             ImGui::Checkbox("Show Solution", &show_solution);
+            is_solvable ? ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0,200,0,255)) : ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200,0,0,255));
+            is_solvable ? ImGui::Text("Maze IS solvable") : ImGui::Text("Maze IS NOT solvable");
+            ImGui::PopStyleColor();
             ImGui::End();
+            ImGui::PopStyleVar(2);
         }
 
         // ImGui Rendering
         ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
         glfwSwapInterval(1); // Enable vsync
     }
 
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }
