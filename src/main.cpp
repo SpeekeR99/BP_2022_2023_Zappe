@@ -1,5 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "const.h"
 #include "graphics/shader.h"
 #include "graphics/drawing.h"
@@ -89,15 +92,24 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     player->move_to(new_x, new_y);
 }
 
-int main(int argc, char **argv) {
-    GLFWwindow *window;
+static void glfw_error_callback(int error, const char* description) {
+    fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
 
+int main(int argc, char **argv) {
     // Initialize the library
+    glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return -1;
 
+    // GL 3.0 + GLSL 130
+    const char* glsl_version = "#version 130";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Maze", nullptr, nullptr);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Maze", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -105,11 +117,34 @@ int main(int argc, char **argv) {
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
+    glfwSetWindowPos(window, (1920 - WINDOW_WIDTH) / 2, (1080 - WINDOW_HEIGHT) / 2);
 
     GLenum err = glewInit();
     if (err != GLEW_OK) {
         // Problem: glewInit failed, something is seriously wrong
         std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+    }
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    //io.ConfigViewportsNoAutoMerge = true;
+    //io.ConfigViewportsNoTaskBarIcon = true;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
     // Print out some info about the graphics drivers
@@ -120,8 +155,13 @@ int main(int argc, char **argv) {
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
 
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
     // White background
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Generate maze
     auto graph = Generator::create_hexagonal_grid_graph(WINDOW_WIDTH / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, true);
@@ -176,13 +216,22 @@ int main(int argc, char **argv) {
     auto shader_blue = Shader::create_shader(source_blue.vertex_source, source_blue.fragment_source);
 
     auto now = std::chrono::high_resolution_clock::now();
+    float speed = 0.0f;
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
+        // Poll for and process events
+        glfwPollEvents();
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (!paused && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count() > 100) {
+        if (!paused && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count() > (int) (1000 * (1.0f - speed))) {
             ca->next_generation();
             Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
             now = std::chrono::high_resolution_clock::now();
@@ -253,12 +302,21 @@ int main(int argc, char **argv) {
 //            std::cout << "Maze solved!" << std::endl;
 //        }
 
+        {
+            ImGui::Begin("Config Window");
+            ImGui::SliderFloat("Speed", &speed, 0.0f, 1.0f);
+            ImGui::Checkbox("Paused", &paused);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Show Solution", &show_solution);
+            ImGui::End();
+        }
+
+        // ImGui Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // Swap front and back buffers
         glfwSwapBuffers(window);
-        glfwSwapInterval(1);
-
-        // Poll for and process events
-        glfwPollEvents();
+        glfwSwapInterval(1); // Enable vsync
     }
 
     glfwTerminate();
