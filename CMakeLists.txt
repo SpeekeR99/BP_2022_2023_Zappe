@@ -18,6 +18,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 # Including ImGui
 include_directories(lib/imgui)
 include_directories(lib/imgui/backends)
+include_directories(lib/imgui/misc/cpp)
 
 add_executable(
     BP_2022_Zappe
@@ -55,6 +56,8 @@ add_executable(
     lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/imgui/backends/imgui_impl_opengl3.h
     lib/imgui/backends/imgui_impl_opengl3_loader.h
+    lib/imgui/misc/cpp/imgui_stdlib.cpp
+    lib/imgui/misc/cpp/imgui_stdlib.h
 )
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARY})

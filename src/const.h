@@ -3,12 +3,12 @@
 #include <algorithm>
 
 constexpr double PI = 3.14159265359;
-constexpr int WINDOW_WIDTH = 1280;
-constexpr int WINDOW_HEIGHT = 720;
-constexpr int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
-constexpr int GRID_SIZE = 30;
-constexpr float BLACK_LINE_WIDTH = GRID_SIZE * 1.33f;
-constexpr float WHITE_LINE_WIDTH = GRID_SIZE * 0.5f;
-constexpr float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-constexpr float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-constexpr float PLAYER_RADIUS = GRID_SIZE * 0.5f / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+extern int WINDOW_WIDTH;
+extern int WINDOW_HEIGHT;
+extern int WINDOW_X_OFFSET;
+extern int GRID_SIZE;
+extern float BLACK_LINE_WIDTH;
+extern float WHITE_LINE_WIDTH;
+extern float BLACK_NODE_RADIUS;
+extern float WHITE_NODE_RADIUS;
+extern float PLAYER_RADIUS;
