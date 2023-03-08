@@ -11,8 +11,8 @@ std::shared_ptr<Graph> Generator::create_orthogonal_grid_graph(int width, int he
             int x = i * GRID_SIZE + GRID_SIZE;
             int y = j * GRID_SIZE + GRID_SIZE;
             if (non_grid) {
-                x += static_cast<int>(dis(gen) * 5);
-                y += static_cast<int>(dis(gen) * 5);
+                x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
+                y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
             grid_graph->set_node(v, x, y);
 
@@ -39,8 +39,8 @@ std::shared_ptr<Graph> Generator::create_hexagonal_grid_graph(int width, int hei
             if (i % 2 == 1)
                 y += GRID_SIZE / 2;
             if (non_grid) {
-                x += static_cast<int>(dis(gen) * 5);
-                y += static_cast<int>(dis(gen) * 5);
+                x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
+                y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
             grid_graph->set_node(v, x, y);
 
@@ -69,8 +69,8 @@ std::shared_ptr<Graph> Generator::create_orthogonal_grid_graph_laplacian(int wid
             int x = i * GRID_SIZE + GRID_SIZE;
             int y = j * GRID_SIZE + GRID_SIZE;
             if (non_grid) {
-                x += static_cast<int>(dis(gen) * 5);
-                y += static_cast<int>(dis(gen) * 5);
+                x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
+                y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
             grid_graph->set_node(v, x, y);
 

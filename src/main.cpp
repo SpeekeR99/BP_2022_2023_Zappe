@@ -1,11 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <regex>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_stdlib.h"
-#include "const.h"
 #include "graphics/shader.h"
 #include "graphics/drawing.h"
 #include "maze/generator.h"
@@ -26,6 +24,7 @@
 
 // Hexagonal grid graph + laplacean
 // B23/S12345   i = 7
+// B3/S1234     i = 7
 
 // Orthogonal grid graph + hexagonal
 // B3/S234    i = -1
@@ -57,11 +56,11 @@ int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 720;
 int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
 int GRID_SIZE = 30;
-float BLACK_LINE_WIDTH = GRID_SIZE * 1.33f;
-float WHITE_LINE_WIDTH = GRID_SIZE * 0.5f;
-float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-float PLAYER_RADIUS = GRID_SIZE * 0.5f / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+float BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
+float WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
+float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+float PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
 bool fullscreen = false;
 
 //void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -504,7 +503,7 @@ int main(int argc, char **argv) {
             ImGui::Begin("Configuration", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
 
             ImGui::SetWindowPos(ImVec2(0, 0));
-            ImGui::SetWindowSize(ImVec2((float) (WINDOW_WIDTH - WINDOW_HEIGHT - (float) GRID_SIZE / 2), WINDOW_HEIGHT));
+            ImGui::SetWindowSize(ImVec2((float) ((float) WINDOW_WIDTH - (float) WINDOW_HEIGHT - (float) GRID_SIZE / 2), (float) WINDOW_HEIGHT));
 
             ImGui::SeparatorText("Graphics Settings");
             if (ImGui::Button("Set 1280x720")) {
@@ -555,11 +554,11 @@ int main(int argc, char **argv) {
             ImGui::SetWindowFontScale(font_size);
             ImGui::InputFloat("Font Size", &font_size, 0.1f, 0.3f, "%.1f");
             if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
-                BLACK_LINE_WIDTH = GRID_SIZE * 1.33f;
-                WHITE_LINE_WIDTH = GRID_SIZE * 0.5f;
-                BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                PLAYER_RADIUS = GRID_SIZE * 0.5f / std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
+                WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
+                BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                 reset_button_callback();
             }
 
