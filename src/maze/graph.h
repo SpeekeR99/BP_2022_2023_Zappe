@@ -28,6 +28,7 @@ public:
     [[nodiscard]] int get_v() const;
     [[nodiscard]] std::vector<int> *get_adj() const;
     [[nodiscard]] std::vector<std::shared_ptr<Node>> get_nodes() const;
+    [[nodiscard]] int get_nearest_node_to(int x, int y) const;
     void set_node(int index, int x, int y);
 
     void add_edge(int src, int dest);

@@ -29,6 +29,24 @@ std::vector<std::shared_ptr<Node>> Graph::get_nodes() const {
     return nodes;
 }
 
+int Graph::get_nearest_node_to(const int x, const int y) const {
+    auto nearest = -1;
+    auto nearest_dx = GRID_SIZE * 2;
+    auto nearest_dy = GRID_SIZE * 2;
+
+    for (auto &node : get_nodes()) {
+        auto dx = std::abs(node->get_x() - x);
+        auto dy = std::abs(node->get_y() - y);
+        if (dx * dx + dy * dy < nearest_dx * nearest_dx + nearest_dy * nearest_dy) {
+            nearest = node->get_v();
+            nearest_dx = dx;
+            nearest_dy = dy;
+        }
+    }
+
+    return nearest;
+}
+
 void Graph::set_node(int index, int x, int y) {
     nodes[index] = std::make_shared<Node>(index, x, y);
 }

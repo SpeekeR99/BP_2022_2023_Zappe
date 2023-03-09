@@ -45,6 +45,7 @@ int size_paths, buffer_paths;
 bool draw = false;
 bool paused = false;
 bool is_solvable = false;
+bool is_solved = false;
 std::vector<std::pair<int, int>> solved_path;
 bool show_solution = false;
 std::string rulestring = "B3/S1234";
@@ -63,77 +64,29 @@ float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, 
 float PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
 bool fullscreen = false;
 
-//void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-//    // Escape exits the app
-//    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-//        glfwSetWindowShouldClose(window, GLFW_TRUE);
-//
-//    int new_x = player->get_x();
-//    int new_y = player->get_y();
-//
-//    if (!draw) return;
-//
-//    // WSAD or arrow keys move the player
-//    if ((key == GLFW_KEY_W || key == GLFW_KEY_UP) && action == GLFW_PRESS)
-//        new_y -= 10;
-//    if ((key == GLFW_KEY_S || key == GLFW_KEY_DOWN) && action == GLFW_PRESS)
-//        new_y += 10;
-//    if ((key == GLFW_KEY_A || key == GLFW_KEY_LEFT) && action == GLFW_PRESS)
-//        new_x -= 10;
-//    if ((key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) && action == GLFW_PRESS)
-//        new_x += 10;
-//
-//    // Check if the new position is valid
-//    GLubyte pixel[3];
-//    glReadPixels(new_x + WINDOW_X_OFFSET, WINDOW_HEIGHT - new_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixel);
-//    if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0) // Black == Wall
-//        return;
-//
-//    player->move_to(new_x, new_y);
-//}
-
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     if (!draw) return;
 
-    auto new_x = static_cast<int>(xpos);
+    auto new_x = static_cast<int>(xpos) - WINDOW_X_OFFSET;
     auto new_y = static_cast<int>(ypos);
 
-    // Check if the new position is valid
-    if (abs(new_x - (player->get_x() + WINDOW_X_OFFSET)) < GRID_SIZE * 0.5 && abs(new_y - player->get_y()) < GRID_SIZE * 0.5)
+    if (new_x < GRID_SIZE / 2 || new_x > WINDOW_HEIGHT - GRID_SIZE / 2 || new_y < GRID_SIZE / 2 || new_y > WINDOW_HEIGHT - GRID_SIZE / 2)
         return;
 
-    // Check line of sight between player and cursor
-    int x0 = player->get_x() + WINDOW_X_OFFSET;
-    int y0 = player->get_y();
-    int x1 = new_x;
-    int y1 = new_y;
+    if (maze_type == 0) {
+        auto nearest_to_player = maze->get_nearest_node_to(player->get_x(), player->get_y());
+        auto nearest_to_mouse = maze->get_nearest_node_to(new_x, new_y);
 
-    int dx = abs(x1 - x0);
-    int sx = x0 < x1 ? 1 : -1;
-    int dy = -abs(y1 - y0);
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx + dy, e2;
-
-    while (x0 != x1 || y0 != y1) {
-        // Check if there is a wall in the way of line of sight
-        GLubyte pixel[3];
-        glReadPixels(x0, WINDOW_HEIGHT - y0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixel);
-        if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0) // Black == Wall
-            return;
-
-        // Update
-        e2 = 2 * err;
-        if (e2 >= dy) {
-            err += dy;
-            x0 += sx;
-        }
-        if (e2 <= dx) {
-            err += dx;
-            y0 += sy;
-        }
+        if (maze->is_adjacent(nearest_to_player, nearest_to_mouse))
+            player->move_to(maze->get_nodes()[nearest_to_mouse]->get_x(), maze->get_nodes()[nearest_to_mouse]->get_y());
     }
+    else if (maze_type == 1) {
+        auto nearest_to_player = ca->get_graph()->get_nearest_node_to(player->get_x(), player->get_y());
+        auto nearest_to_mouse = ca->get_graph()->get_nearest_node_to(new_x, new_y);
 
-    player->move_to(new_x - WINDOW_X_OFFSET, new_y);
+        if (ca->get_graph()->is_adjacent(nearest_to_player, nearest_to_mouse) && ca->get_graph()->get_nodes()[nearest_to_mouse]->is_alive())
+            player->move_to(ca->get_graph()->get_nodes()[nearest_to_mouse]->get_x(), ca->get_graph()->get_nodes()[nearest_to_mouse]->get_y());
+    }
 }
 
 static void glfw_error_callback(int error, const char* description) {
@@ -171,6 +124,7 @@ void reset_button_callback() {
     draw = false;
     paused = false;
     is_solvable = false;
+    is_solved = false;
     solved_path.clear();
     show_solution = false;
     rulestring = "B3/S1234";
@@ -396,7 +350,7 @@ int main(int argc, char **argv) {
             }
 
             // Draw path that the player has walked
-            glLineWidth(2.0f);
+            glLineWidth(3.0f);
             glUseProgram(shader_red);
             for (int i = 0; i < player->get_path().size() - 1; i++)
                 Drawing::draw_line(player->get_path()[i].first, player->get_path()[i].second,
@@ -405,13 +359,15 @@ int main(int argc, char **argv) {
             // Draw player
             glUseProgram(shader_green);
             Drawing::draw_circle(player->get_x(), player->get_y(), PLAYER_RADIUS);
-        }
 
-        // Check if the player has reached the end
-//        if (abs(player->get_x() - maze->get_nodes()[maze->get_v() - 1]->get_x()) < 10 &&
-//            abs(player->get_y() - maze->get_nodes()[maze->get_v() - 1]->get_y()) < 10) {
-//            std::cout << "Maze solved!" << std::endl;
-//        }
+            // Check if the player has reached the end
+            if (maze_type == 0)
+                is_solved = player->get_x() == maze->get_nodes()[maze->get_v() - 1]->get_x() &&
+                            player->get_y() == maze->get_nodes()[maze->get_v() - 1]->get_y();
+            else if (maze_type == 1)
+                is_solved = player->get_x() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x() &&
+                            player->get_y() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y();
+        }
 
 //        {
 //            static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_AutoHideTabBar;
@@ -587,16 +543,18 @@ int main(int argc, char **argv) {
                 ImGui::SameLine();
                 help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
                 ImGui::Combo("Neighborhood Graph", &neighborhood_graph_type, neighborhood_graph_types, IM_ARRAYSIZE(neighborhood_graph_types));
+                ImGui::SameLine();
+                help_marker("Neighborhood Graph is the graph that is used as reference for possible neighborhoods checking\nChecking doesn't necessarily mean that the original Base Graph is able to have these edges\nExample: Game of Life uses Base Graph with 4-neighborhood and Neighborhood Graph with 8-neighborhood");
 
                 ImGui::SeparatorText("Cellular Automata Settings");
                 ImGui::InputText("Rulestring", &rulestring);
                 ImGui::SameLine();
-                help_marker("Rulestring format is B[0-9]+/S[0-9]+\nB is birth rule\nS is survival rule\nExample: B3/S23");
+                help_marker("Rulestring format is B[0-9]+/S[0-9]+\nB is birth rule\nS is survival rule\nExample: Game of Life Rulestring is B3/S23");
                 ImGui::InputInt("Initial Square Size", &initialize_square_size);
                 ImGui::SameLine();
                 help_marker("Size of square of cells that is used to initialize the cellular automata\nInitial state is random\n-1 means that the whole grid is used");
                 ImGui::SliderFloat("Speed", &speed, 0.0f, 1.0f);
-                ImGui::Checkbox("Paused", &paused);
+                ImGui::Checkbox("Pause Evolution", &paused);
             }
 
             ImGui::SeparatorText("Solver Settings");
@@ -606,14 +564,24 @@ int main(int argc, char **argv) {
             ImGui::Checkbox("Show Solution", &show_solution);
 
             ImGui::SeparatorText("Maze Status");
+            ImGui::Text("Maze");
+            ImGui::SameLine();
             is_solvable ? ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0,200,0,255)) : ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200,0,0,255));
-            is_solvable ? ImGui::Text("Maze IS solvable") : ImGui::Text("Maze IS NOT solvable");
+            is_solvable ? ImGui::Text("IS") : ImGui::Text("IS NOT");
             ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("solvable");
+            ImGui::Text("Maze");
+            ImGui::SameLine();
+            is_solved ? ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0,200,0,255)) : ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200,0,0,255));
+            is_solved ? ImGui::Text("IS") : ImGui::Text("IS NOT");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("solved");
 
             ImGui::SeparatorText("Controls");
             if (ImGui::Button("Generate"))
                 generate_button_callback();
-            ImGui::SameLine();
             if (ImGui::Button("Reset"))
                 reset_button_callback();
 
