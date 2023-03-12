@@ -43,6 +43,7 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
     }
 
     graph->get_nodes()[0]->set_alive(true);
+    graph->get_nodes()[graph->get_v() - 1]->set_alive(true);
 }
 
 std::shared_ptr<Graph> &CellularAutomata::get_graph() {
@@ -65,6 +66,9 @@ void CellularAutomata::next_generation() {
             new_graph->get_nodes()[i]->set_alive(false);
     }
 
+    new_graph->get_nodes()[0]->set_alive(true);
+    new_graph->get_nodes()[graph->get_v() - 1]->set_alive(true);
+
     for (int i = 0; i < new_graph->get_v(); i++) {
         std::vector<int> possible_neighbors;
         for (int j = 0; j < new_graph->get_v(); j++) {
@@ -76,12 +80,11 @@ void CellularAutomata::next_generation() {
                 new_graph->add_edge(i, possible_neighbor);
             }
         } else {
-            for (int possible_neighbor: possible_neighbors) {
-                new_graph->remove_edge(i, possible_neighbor);
+            for (int j = 0; j < new_graph->get_v(); j++) {
+                new_graph->remove_edge(i, j);
             }
         }
     }
 
     graph = new_graph;
-    graph->get_nodes()[0]->set_alive(true);
 }
