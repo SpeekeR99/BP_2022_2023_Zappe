@@ -42,7 +42,7 @@ static int graph_type = 0;
 static int neighborhood_graph_type = 0;
 static int maze_type = 0;
 static int generator_algorithm = 0;
-static int solver_algorithm = 0;
+static int solver_algorithm = 2;
 bool non_grid_version = false;
 std::unique_ptr<Player> player;
 bool draw = false;
@@ -409,7 +409,6 @@ void generate_button_callback() {
     }
 
     reset_player_button_callback();
-    solve_button_callback();
 }
 
 int main(int argc, char **argv) {
