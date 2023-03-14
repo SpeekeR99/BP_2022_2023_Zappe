@@ -11,18 +11,7 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
     blue = static_cast<float>(color[2]) / 255.0f;
 }
 
-void Drawing::draw_line(int x1, int y1, int x2, int y2) {
-    float x1_opengl, y1_opengl, x2_opengl, y2_opengl;
-    transform_x_y_to_opengl(x1 + WINDOW_X_OFFSET, y1, x1_opengl, y1_opengl);
-    transform_x_y_to_opengl(x2 + WINDOW_X_OFFSET, y2, x2_opengl, y2_opengl);
-
-    glBegin(GL_LINES);
-    glVertex2f(x1_opengl, y1_opengl);
-    glVertex2f(x2_opengl, y2_opengl);
-    glEnd();
-}
-
-void Drawing::draw_circle(int x, int y, float radius) {
+void Drawing::draw_circle(int x, int y, float radius, ImVec4 color) {
     float x_opengl, y_opengl;
     transform_x_y_to_opengl(x + WINDOW_X_OFFSET, y, x_opengl, y_opengl);
     float radius_x = radius / 2.0f, radius_y = radius / 2.0f;
@@ -35,20 +24,52 @@ void Drawing::draw_circle(int x, int y, float radius) {
                    (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
         radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
     }
-    int num_segments = 40;
+    int num_segments = 36;
 
-    glBegin(GL_TRIANGLE_FAN);
+    auto *vertices = new GLfloat[(num_segments + 1) * 2 * 5];
+    vertices[0] = x_opengl;
+    vertices[1] = y_opengl;
+    vertices[2] = color.x;
+    vertices[3] = color.y;
+    vertices[4] = color.z;
+    for (int i = 5; i < (num_segments + 1) * 2 * 5; i += 5) {
+        float angle = 2.0f * PI * static_cast<float>(i / 5 - 1) / static_cast<float>(num_segments);
+        vertices[i] = x_opengl + radius_x * cos(angle);
+        vertices[i + 1] = y_opengl + radius_y * sin(angle);
+        vertices[i + 2] = color.x;
+        vertices[i + 3] = color.y;
+        vertices[i + 4] = color.z;
+    }
 
-    glVertex2f(x_opengl, y_opengl); // Center
-    for (int i = 0; i <= num_segments; i++)
-        glVertex2f(
-                static_cast<float>(radius_x * cos(2 * PI * i / num_segments) + x_opengl),
-                static_cast<float>(radius_y * sin(2 * PI * i / num_segments) + y_opengl)
-        );
-    glEnd();
+    auto *indices = new GLuint[3 * num_segments];
+    for (int i = 0; i < num_segments; i++) {
+        indices[i * 3] = 0;
+        indices[i * 3 + 1] = i + 1;
+        indices[i * 3 + 2] = i + 2;
+    }
+
+    std::shared_ptr<VAO> vao = std::make_shared<VAO>();
+    vao->bind();
+    std::shared_ptr<VBO> vbo = std::make_shared<VBO>(vertices, (num_segments + 1) * 2 * 5 * sizeof(GLfloat));
+    std::shared_ptr<EBO> ebo = std::make_shared<EBO>(indices, 3 * num_segments * sizeof(GLuint));
+    vao->link_attribute(vbo, 0, 2, GL_FLOAT, 5 * sizeof(GLfloat), (void *) 0);
+    vao->link_attribute(vbo, 1, 3, GL_FLOAT, 5 * sizeof(GLfloat), (void *) (2 * sizeof(GLfloat)));
+    vao->unbind();
+    vbo->unbind();
+    ebo->unbind();
+
+    vao->bind();
+    glDrawElements(GL_TRIANGLES, ebo->num_elements, GL_UNSIGNED_INT, 0);
+    vao->unbind();
+
+    vao->del();
+    vbo->del();
+    ebo->del();
+    delete[] vertices;
+    delete[] indices;
 }
 
-void Drawing::buffer_graph(const std::shared_ptr<Graph> &graph, int &size, int &buffer) {
+void Drawing::buffer_graph(std::shared_ptr<VAO> &vao, std::shared_ptr<VBO> &vbo, std::shared_ptr<EBO> &ebo, const std::shared_ptr<Graph> &graph, ImVec4 color) {
     std::vector<float> points;
 
     for (int i = 0; i < graph->get_v(); i++) {
@@ -72,11 +93,66 @@ void Drawing::buffer_graph(const std::shared_ptr<Graph> &graph, int &size, int &
         }
     }
 
-    unsigned int buffer_edges;
-    glGenBuffers(1, &buffer_edges);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer_edges);
-    glBufferData(GL_ARRAY_BUFFER, static_cast<int>(points.size() * sizeof(float)), &points[0], GL_STATIC_DRAW);
+    auto* vertices = new GLfloat[points.size() * 5 / 2];
+    for (int i = 0, index = 0; i < points.size(); i += 2, index += 5) {
+        vertices[index] = points[i];
+        vertices[index + 1] = points[i + 1];
+        vertices[index + 2] = color.x;
+        vertices[index + 3] = color.y;
+        vertices[index + 4] = color.z;
+    }
 
-    size = static_cast<int>(points.size());
-    buffer = buffer_edges;
+    auto* indices = new GLuint[points.size() / 2];
+    for (int i = 0; i < points.size() / 2; i++)
+        indices[i] = i;
+
+    vao = std::make_shared<VAO>();
+    vao->bind();
+    vbo = std::make_shared<VBO>(vertices, points.size() * 5 / 2 * sizeof(GLfloat));
+    ebo = std::make_shared<EBO>(indices, points.size() / 2 * sizeof(GLuint));
+    vao->link_attribute(vbo, 0, 2, GL_FLOAT, 5 * sizeof(GLfloat), (void *) 0);
+    vao->link_attribute(vbo, 1, 3, GL_FLOAT, 5 * sizeof(GLfloat), (void *) (2 * sizeof(GLfloat)));
+    vao->unbind();
+    vbo->unbind();
+    ebo->unbind();
+
+    delete[] vertices;
+    delete[] indices;
+}
+
+void Drawing::buffer_lines(std::shared_ptr<VAO> &vao, std::shared_ptr<VBO> &vbo, std::shared_ptr<EBO> &ebo, const std::vector<std::pair<int, int>> &lines, ImVec4 color) {
+    if (lines.empty())
+        return;
+
+    auto* vertices = new GLfloat[lines.size() * 5];
+    for (int i = 0, index = 0; i < lines.size(); i++, index += 5) {
+        float x, y;
+        transform_x_y_to_opengl(lines[i].first + WINDOW_X_OFFSET, lines[i].second, x, y);
+        vertices[index] = x;
+        vertices[index + 1] = y;
+        vertices[index + 2] = color.x;
+        vertices[index + 3] = color.y;
+        vertices[index + 4] = color.z;
+    }
+
+    auto* indices = new GLuint[(lines.size() - 1) * 2];
+    indices[0] = 0;
+    indices[1] = 1;
+    for (int i = 1, index = 2; i < lines.size() - 1; i++, index += 2) {
+        indices[index] = i;
+        indices[index + 1] = i + 1;
+    }
+
+    vao = std::make_shared<VAO>();
+    vao->bind();
+    vbo = std::make_shared<VBO>(vertices, lines.size() * 5 * sizeof(GLfloat));
+    ebo = std::make_shared<EBO>(indices, (lines.size() - 1) * 2 * sizeof(GLuint));
+    vao->link_attribute(vbo, 0, 2, GL_FLOAT, 5 * sizeof(GLfloat), (void *) 0);
+    vao->link_attribute(vbo, 1, 3, GL_FLOAT, 5 * sizeof(GLfloat), (void *) (2 * sizeof(GLfloat)));
+    vao->unbind();
+    vbo->unbind();
+    ebo->unbind();
+
+    delete[] vertices;
+    delete[] indices;
 }

@@ -5,7 +5,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_stdlib.h"
-#include "graphics/shader.h"
+#include "graphics/shaders/shader.h"
+#include "graphics/shaders/VAO.h"
+#include "graphics/shaders/VBO.h"
+#include "graphics/shaders/EBO.h"
 #include "graphics/drawing.h"
 #include "maze/generator.h"
 #include "maze/solver.h"
@@ -68,9 +71,27 @@ float BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, 
 float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
 float PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
 bool fullscreen = false;
-bool language = true;
 bool show_settings_window = false;
 bool show_about_window = false;
+
+ImVec4 background_color = {29. / 255, 29. / 255, 29. / 255, 1.0f};
+std::shared_ptr<VAO> background_vao;
+std::shared_ptr<VBO> background_vbo;
+std::shared_ptr<EBO> background_ebo;
+ImVec4 paths_color = {1.0f, 1.0f, 1.0f, 1.0f};
+std::shared_ptr<VAO> paths_vao;
+std::shared_ptr<VBO> paths_vbo;
+std::shared_ptr<EBO> paths_ebo;
+ImVec4 start_end_color = {0.0f, 0.0f, 1.0f, 1.0f};
+ImVec4 player_color = {0.0f, 1.0f, 0.0f, 1.0f};
+ImVec4 solution_color = {0.0f, 0.0f, 1.0f, 1.0f};
+std::shared_ptr<VAO> solution_vao;
+std::shared_ptr<VBO> solution_vbo;
+std::shared_ptr<EBO> solution_ebo;
+ImVec4 player_path_color = {1.0f, 0.0f, 0.0f, 1.0f};
+std::shared_ptr<VAO> player_path_vao;
+std::shared_ptr<VBO> player_path_vbo;
+std::shared_ptr<EBO> player_path_ebo;
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     if (!draw) return;
@@ -192,11 +213,7 @@ void generate_button_callback() {
         if (generator_algorithm == 0)
             maze = Generator::generate_maze_dfs(graph);
 
-        reset_player_button_callback();
-
-        solve_button_callback();
-
-        Drawing::buffer_graph(maze, size_paths, buffer_paths);
+        Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, maze, paths_color);
     }
     else if (maze_type == 1) {
         if (neighborhood_graph_type == 0)
@@ -214,8 +231,12 @@ void generate_button_callback() {
 
         solve_button_callback();
 
-        Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
+        Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
     }
+
+    reset_player_button_callback();
+    solve_button_callback();
+    Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
 }
 
 int main(int argc, char **argv) {
@@ -272,22 +293,37 @@ int main(int argc, char **argv) {
     // Background color
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-    // Load shaders
-    auto source_paths = Shader::parse_shader("src/graphics/shaders/paths.shader");
-    auto source_green = Shader::parse_shader("src/graphics/shaders/green.shader");
-    auto source_red = Shader::parse_shader("src/graphics/shaders/red.shader");
-    auto source_blue = Shader::parse_shader("src/graphics/shaders/blue.shader");
-    auto source_background = Shader::parse_shader("src/graphics/shaders/background.shader");
-    auto shader_paths = Shader::create_shader(source_paths.vertex_source, source_paths.fragment_source);
-    auto shader_green = Shader::create_shader(source_green.vertex_source, source_green.fragment_source);
-    auto shader_red = Shader::create_shader(source_red.vertex_source, source_red.fragment_source);
-    auto shader_blue = Shader::create_shader(source_blue.vertex_source, source_blue.fragment_source);
-    auto shader_background = Shader::create_shader(source_background.vertex_source, source_background.fragment_source);
+    // Load shader
+    auto source_default = Shader::parse_shader("src/graphics/shaders/default.shader");
+    auto shader_default = Shader::create_shader(source_default.vertex_source, source_default.fragment_source);
 
+    // Background rectangle
     float rect_x, rect_y;
     float rect_width, rect_height;
     Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
     Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
+
+    GLfloat background_vertices[] = {
+            rect_x, rect_y,          background_color.x, background_color.y, background_color.z,
+            rect_x, rect_height,     background_color.x, background_color.y, background_color.z,
+            rect_width, rect_height, background_color.x, background_color.y, background_color.z,
+            rect_width, rect_y,      background_color.x, background_color.y, background_color.z
+    };
+
+    GLuint background_indices[] = {
+            0, 1, 2, 3
+    };
+
+    background_vao = std::make_shared<VAO>();
+    background_vao->bind();
+    background_vbo = std::make_shared<VBO>(background_vertices, 4 * sizeof(background_vertices));
+    background_ebo = std::make_shared<EBO>(background_indices, 4 * sizeof(background_indices));
+    background_vao->link_attribute(background_vbo, 0, 2, GL_FLOAT, 5 * sizeof(float), (void*)0);
+    background_vao->link_attribute(background_vbo, 1, 3, GL_FLOAT, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    background_vao->unbind();
+    background_vbo->unbind();
+    background_ebo->unbind();
+
     auto now = std::chrono::high_resolution_clock::now();
 
     // Loop until the user closes the window
@@ -303,14 +339,16 @@ int main(int argc, char **argv) {
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader_background);
-        glRectf(rect_x, rect_y, rect_width, rect_height);
+        glUseProgram(shader_default);
+        background_vao->bind();
+        glDrawElements(GL_QUADS, background_ebo->num_elements, GL_UNSIGNED_INT, 0);
+        background_vao->unbind();
 
         if (draw) {
             if (!paused && maze_type == 1 && std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - now).count() > (int) (1000 * (1.0f - speed))) {
                 ca->next_generation();
-                Drawing::buffer_graph(ca->get_graph(), size_paths, buffer_paths);
+                Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
                 now = std::chrono::high_resolution_clock::now();
 
                 auto player_node = ca->get_graph()->get_nearest_node_to(player->get_x(), player->get_y());
@@ -339,66 +377,62 @@ int main(int argc, char **argv) {
                                                                   ca->get_graph()->get_nodes().size() -
                                                                   1]->get_y()});
                 }
+                Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
             }
 
             // Draw maze
             glLineWidth(WHITE_LINE_WIDTH);
-            glUseProgram(shader_paths);
-            glBindBuffer(GL_ARRAY_BUFFER, buffer_paths);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-            glDrawArrays(GL_LINES, 0, size_paths);
+            paths_vao->bind();
+            glDrawElements(GL_LINES, paths_ebo->num_elements, GL_UNSIGNED_INT, 0);
+            paths_vao->unbind();
+
             if (maze_type == 0) {
                 for (auto &node: maze->get_nodes())
-                    Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
+                    Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
             }
             else if (maze_type == 1) {
                 for (auto &node: ca->get_graph()->get_nodes())
                     if (node->is_alive())
-                        Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS);
+                        Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
             }
 
             // Color the start and end nodes
-            glUseProgram(shader_blue);
             if (maze_type == 0) {
-                Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f);
-                Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f);
+                Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f, start_end_color);
+                Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f, start_end_color);
             }
             else if (maze_type == 1) {
                 Drawing::draw_circle(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y(),
-                                     PLAYER_RADIUS * 1.5f);
+                                     PLAYER_RADIUS * 1.5f, start_end_color);
                 Drawing::draw_circle(ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x(),
                                      ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y(),
-                                     PLAYER_RADIUS * 1.5f);
+                                     PLAYER_RADIUS * 1.5f, start_end_color);
             }
 
             // Draw solution if wanted
             if (is_solvable && show_solution) {
                 glLineWidth(0.33f * WHITE_LINE_WIDTH);
-                glUseProgram(shader_blue);
-                for (int i = 0; i < solved_path.size() - 1; i++)
-                    Drawing::draw_line(solved_path[i].first, solved_path[i].second,
-                                       solved_path[i + 1].first, solved_path[i + 1].second);
+                solution_vao->bind();
+                glDrawElements(GL_LINES, solution_ebo->num_elements, GL_UNSIGNED_INT, 0);
+                solution_vao->unbind();
             }
 
-            if (is_solvable_from_player && show_solution_from_player) {
-                glLineWidth(0.33f * WHITE_LINE_WIDTH);
-                glUseProgram(shader_blue);
-                for (int i = 0; i < solved_path_from_player.size() - 1; i++)
-                    Drawing::draw_line(solved_path_from_player[i].first, solved_path_from_player[i].second,
-                                       solved_path_from_player[i + 1].first, solved_path_from_player[i + 1].second);
-            }
+//            if (is_solvable_from_player && show_solution_from_player) {
+//                glLineWidth(0.33f * WHITE_LINE_WIDTH);
+//                for (int i = 0; i < solved_path_from_player.size() - 1; i++)
+//                    Drawing::draw_line(solved_path_from_player[i].first, solved_path_from_player[i].second,
+//                                       solved_path_from_player[i + 1].first, solved_path_from_player[i + 1].second);
+//            }
 
             // Draw path that the player has walked
             glLineWidth(3.0f);
-            glUseProgram(shader_red);
-            for (int i = 0; i < player->get_path().size() - 1; i++)
-                Drawing::draw_line(player->get_path()[i].first, player->get_path()[i].second,
-                                   player->get_path()[i + 1].first, player->get_path()[i + 1].second);
+            Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
+            player_path_vao->bind();
+            glDrawElements(GL_LINES, player_path_ebo->num_elements, GL_UNSIGNED_INT, 0);
+            player_path_vao->unbind();
 
             // Draw player
-            glUseProgram(shader_green);
-            Drawing::draw_circle(player->get_x(), player->get_y(), PLAYER_RADIUS);
+            Drawing::draw_circle(player->get_x(), player->get_y(), PLAYER_RADIUS, player_color);
         }
 
         {
@@ -429,6 +463,10 @@ int main(int argc, char **argv) {
 
             ImGui::Begin("Configuration", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar);
 
+            ImGui::SetWindowPos(ImVec2(0, 0));
+            ImGui::SetWindowSize(ImVec2((float) WINDOW_X_OFFSET, (float) WINDOW_HEIGHT));
+            ImGui::SetWindowFontScale(font_size);
+
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File")) {
                     if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -438,13 +476,6 @@ int main(int argc, char **argv) {
                 if (ImGui::BeginMenu("Settings")) {
                     if (ImGui::MenuItem("Graphics Settings")) {
                         show_settings_window = true;
-                    }
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("CZ", nullptr, !language)) {
-                        language = !language;
-                    }
-                    if (ImGui::MenuItem("EN", nullptr, language)) {
-                        language = !language;
                     }
                     ImGui::EndMenu();
                 }
@@ -457,31 +488,24 @@ int main(int argc, char **argv) {
                 ImGui::EndMenuBar();
             }
 
-            ImGui::SetWindowPos(ImVec2(0, 0));
-            ImGui::SetWindowSize(ImVec2((float) WINDOW_X_OFFSET, (float) WINDOW_HEIGHT));
-            ImGui::SetWindowFontScale(font_size);
-
-            if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
-                if (GRID_SIZE < 10) GRID_SIZE = 10;
-                if (GRID_SIZE > 100) GRID_SIZE = 100;
-
-                BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
-                WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                clear_button_callback();
-            }
-
             ImGui::SeparatorText("Maze Type");
-            if (ImGui::ListBox("", &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
-                int tmp = maze_type;
+            if (ImGui::Combo("", &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
                 clear_button_callback();
-                maze_type = tmp;
             }
 
             if (maze_type == 0) {
                 ImGui::SeparatorText("Graph Settings");
+                if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
+                    if (GRID_SIZE < 10) GRID_SIZE = 10;
+                    if (GRID_SIZE > 100) GRID_SIZE = 100;
+
+                    BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
+                    WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
+                    BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    clear_button_callback();
+                }
                 ImGui::Combo("Base Graph", &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
                 ImGui::Checkbox("Non-Grid", &non_grid_version);
                 ImGui::SameLine();
@@ -493,6 +517,17 @@ int main(int argc, char **argv) {
 
             else if (maze_type == 1) {
                 ImGui::SeparatorText("Graph Settings");
+                if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
+                    if (GRID_SIZE < 10) GRID_SIZE = 10;
+                    if (GRID_SIZE > 100) GRID_SIZE = 100;
+
+                    BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
+                    WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
+                    BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                    clear_button_callback();
+                }
                 ImGui::Combo("Base Graph", &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
                 ImGui::Checkbox("Non-Grid", &non_grid_version);
                 ImGui::SameLine();
@@ -631,6 +666,30 @@ int main(int argc, char **argv) {
                     if (font_size < 1.0f) font_size = 1.0f;
                     if (font_size > 2.0f) font_size = 2.0f;
                 }
+                if (ImGui::ColorEdit3("Background Color", (float*)&background_color)) {
+                    background_vertices[2] = background_color.x;
+                    background_vertices[3] = background_color.y;
+                    background_vertices[4] = background_color.z;
+                    background_vertices[7] = background_color.x;
+                    background_vertices[8] = background_color.y;
+                    background_vertices[9] = background_color.z;
+                    background_vertices[12] = background_color.x;
+                    background_vertices[13] = background_color.y;
+                    background_vertices[14] = background_color.z;
+                    background_vertices[17] = background_color.x;
+                    background_vertices[18] = background_color.y;
+                    background_vertices[19] = background_color.z;
+
+                    background_vao = std::make_shared<VAO>();
+                    background_vao->bind();
+                    background_vbo = std::make_shared<VBO>(background_vertices, 4 * sizeof(background_vertices));
+                    background_ebo = std::make_shared<EBO>(background_indices, 4 * sizeof(background_indices));
+                    background_vao->link_attribute(background_vbo, 0, 2, GL_FLOAT, 5 * sizeof(float), (void*)0);
+                    background_vao->link_attribute(background_vbo, 1, 3, GL_FLOAT, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+                    background_vao->unbind();
+                    background_vbo->unbind();
+                    background_ebo->unbind();
+                }
 
                 ImGui::End();
             }
@@ -639,12 +698,12 @@ int main(int argc, char **argv) {
         {
             if (show_about_window) {
                 ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-                ImGui::SetNextWindowBgAlpha(0.35f);
-                ImGui::Begin("About", &show_about_window, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse);
+                ImGui::Begin("About", &show_about_window, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse);
                 ImGui::SetWindowFontScale(font_size);
                 ImGui::Text("This application was made by:\nDominik Zappe");
                 ImGui::Separator();
                 ImGui::Text("Application serves as Bachelors Thesis Project\nfor the University of Applied Sciences\nin the field of Computer Science");
+                ImGui::End();
             }
         }
 
@@ -661,6 +720,20 @@ int main(int argc, char **argv) {
     }
 
     // Cleanup
+    glDeleteProgram(shader_default);
+    background_vao->del();
+    background_vbo->del();
+    background_ebo->del();
+    paths_vao->del();
+    paths_vbo->del();
+    paths_ebo->del();
+    solution_vao->del();
+    solution_vbo->del();
+    solution_ebo->del();
+    player_path_vao->del();
+    player_path_vbo->del();
+    player_path_ebo->del();
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
