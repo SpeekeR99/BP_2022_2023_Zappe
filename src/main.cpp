@@ -544,7 +544,6 @@ int main(int argc, char **argv) {
 
                     BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
                     WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                    BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     clear_button_callback();
@@ -566,7 +565,6 @@ int main(int argc, char **argv) {
 
                     BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
                     WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                    BLACK_NODE_RADIUS = 2 * BLACK_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     clear_button_callback();
