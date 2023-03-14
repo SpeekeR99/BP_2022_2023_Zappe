@@ -96,6 +96,17 @@ std::shared_ptr<VAO> solution_from_player_vao;
 std::shared_ptr<VBO> solution_from_player_vbo;
 std::shared_ptr<EBO> solution_from_player_ebo;
 
+GLfloat background_vertices[] = {
+        0.0f, 0.0f, background_color.x, background_color.y, background_color.z,
+        0.0f, 0.0f, background_color.x, background_color.y, background_color.z,
+        0.0f, 0.0f, background_color.x, background_color.y, background_color.z,
+        0.0f, 0.0f, background_color.x, background_color.y, background_color.z
+};
+
+GLuint background_indices[] = {
+        0, 1, 2, 3
+};
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     if (!draw) return;
 
@@ -179,6 +190,31 @@ static void help_marker(const char* desc)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+void update_background_color() {
+    background_vertices[2] = background_color.x;
+    background_vertices[3] = background_color.y;
+    background_vertices[4] = background_color.z;
+    background_vertices[7] = background_color.x;
+    background_vertices[8] = background_color.y;
+    background_vertices[9] = background_color.z;
+    background_vertices[12] = background_color.x;
+    background_vertices[13] = background_color.y;
+    background_vertices[14] = background_color.z;
+    background_vertices[17] = background_color.x;
+    background_vertices[18] = background_color.y;
+    background_vertices[19] = background_color.z;
+
+    background_vao = std::make_shared<VAO>();
+    background_vao->bind();
+    background_vbo = std::make_shared<VBO>(background_vertices, 4 * sizeof(background_vertices));
+    background_ebo = std::make_shared<EBO>(background_indices, 4 * sizeof(background_indices));
+    background_vao->link_attribute(background_vbo, 0, 2, GL_FLOAT, 5 * sizeof(float), (void*)0);
+    background_vao->link_attribute(background_vbo, 1, 3, GL_FLOAT, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    background_vao->unbind();
+    background_vbo->unbind();
+    background_ebo->unbind();
 }
 
 void reset_player_button_callback() {
@@ -329,26 +365,16 @@ int main(int argc, char **argv) {
     Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
     Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
 
-    GLfloat background_vertices[] = {
-            rect_x, rect_y,          background_color.x, background_color.y, background_color.z,
-            rect_x, rect_height,     background_color.x, background_color.y, background_color.z,
-            rect_width, rect_height, background_color.x, background_color.y, background_color.z,
-            rect_width, rect_y,      background_color.x, background_color.y, background_color.z
-    };
+    background_vertices[0] = rect_x;
+    background_vertices[1] = rect_y;
+    background_vertices[5] = rect_x;
+    background_vertices[6] = rect_height;
+    background_vertices[10] = rect_width;
+    background_vertices[11] = rect_height;
+    background_vertices[15] = rect_width;
+    background_vertices[16] = rect_y;
 
-    GLuint background_indices[] = {
-            0, 1, 2, 3
-    };
-
-    background_vao = std::make_shared<VAO>();
-    background_vao->bind();
-    background_vbo = std::make_shared<VBO>(background_vertices, 4 * sizeof(background_vertices));
-    background_ebo = std::make_shared<EBO>(background_indices, 4 * sizeof(background_indices));
-    background_vao->link_attribute(background_vbo, 0, 2, GL_FLOAT, 5 * sizeof(float), (void*)0);
-    background_vao->link_attribute(background_vbo, 1, 3, GL_FLOAT, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-    background_vao->unbind();
-    background_vbo->unbind();
-    background_ebo->unbind();
+    update_background_color();
 
     auto now = std::chrono::high_resolution_clock::now();
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -715,35 +741,27 @@ int main(int argc, char **argv) {
                 if (ImGui::Combo("Style", &style_idx, "Dark\0Light\0Classic\0"))
                 {
                     switch (style_idx) {
-                        case 0: ImGui::StyleColorsDark(); break;
-                        case 1: ImGui::StyleColorsLight(); break;
-                        case 2: ImGui::StyleColorsClassic(); break;
-                        default: break;
+                        case 0:
+                            ImGui::StyleColorsDark();
+                            background_color = {29. / 255, 29. / 255, 29. / 255, 1.0f};
+                            update_background_color();
+                            break;
+                        case 1:
+                            ImGui::StyleColorsLight();
+                            background_color = {240. / 255, 240. / 255, 240. / 255, 1.0f};
+                            update_background_color();
+                            break;
+                        case 2:
+                            ImGui::StyleColorsClassic();
+                            background_color = {38. / 255, 38. / 255, 38. / 255, 1.0f};
+                            update_background_color();
+                            break;
+                        default:
+                            break;
                     }
                 }
                 if (ImGui::ColorEdit3("Background Color", (float*)&background_color)) {
-                    background_vertices[2] = background_color.x;
-                    background_vertices[3] = background_color.y;
-                    background_vertices[4] = background_color.z;
-                    background_vertices[7] = background_color.x;
-                    background_vertices[8] = background_color.y;
-                    background_vertices[9] = background_color.z;
-                    background_vertices[12] = background_color.x;
-                    background_vertices[13] = background_color.y;
-                    background_vertices[14] = background_color.z;
-                    background_vertices[17] = background_color.x;
-                    background_vertices[18] = background_color.y;
-                    background_vertices[19] = background_color.z;
-
-                    background_vao = std::make_shared<VAO>();
-                    background_vao->bind();
-                    background_vbo = std::make_shared<VBO>(background_vertices, 4 * sizeof(background_vertices));
-                    background_ebo = std::make_shared<EBO>(background_indices, 4 * sizeof(background_indices));
-                    background_vao->link_attribute(background_vbo, 0, 2, GL_FLOAT, 5 * sizeof(float), (void*)0);
-                    background_vao->link_attribute(background_vbo, 1, 3, GL_FLOAT, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-                    background_vao->unbind();
-                    background_vbo->unbind();
-                    background_ebo->unbind();
+                    update_background_color();
                 }
                 if (ImGui::ColorEdit3("Maze Paths Color", (float*)&paths_color)) {
                     if (maze_type == 0 && maze)
