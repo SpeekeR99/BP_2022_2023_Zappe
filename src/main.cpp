@@ -43,6 +43,7 @@ static int neighborhood_graph_type = 0;
 static int maze_type = 0;
 static int generator_algorithm = 0;
 static int solver_algorithm = 2;
+static int heuristic = 1;
 bool non_grid_version = false;
 std::unique_ptr<Player> player;
 bool draw = false;
@@ -166,10 +167,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         else if (solver_algorithm == 2) {
             is_solvable_from_player = Solver::is_maze_solvable_a_star(maze, {player->get_x(), player->get_y()},
                                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                                    maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                                    maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
             solved_path_from_player = Solver::solve_maze_a_star(maze, {player->get_x(), player->get_y()},
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
     if (maze_type == 1) {
@@ -192,10 +193,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         else if (solver_algorithm == 2) {
             is_solvable_from_player = Solver::is_maze_solvable_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                                       ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                                       ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
             solved_path_from_player = Solver::solve_maze_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                                ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                                ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
 
@@ -290,19 +291,19 @@ void solve_button_callback() {
         else if (solver_algorithm == 2) {
             is_solvable = Solver::is_maze_solvable_a_star(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                           {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                           maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                           maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
 
             solved_path = Solver::solve_maze_a_star(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                     {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
 
             is_solvable_from_player = Solver::is_maze_solvable_a_star(maze, {player->get_x(), player->get_y()},
                                                                      {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                                      maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                                      maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
 
             solved_path_from_player = Solver::solve_maze_a_star(maze, {player->get_x(), player->get_y()},
                                                                 {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                                 maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+                                                                 maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
     else if (maze_type == 1) {
@@ -343,19 +344,19 @@ void solve_button_callback() {
         else if (solver_algorithm == 2) {
             is_solvable = Solver::is_maze_solvable_a_star(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                           {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                           ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                           ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
 
             solved_path = Solver::solve_maze_a_star(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                     {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
 
             is_solvable_from_player = Solver::is_maze_solvable_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                      {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                                      ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                                      ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
 
             solved_path_from_player = Solver::solve_maze_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                                 ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+                                                                 ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
 
@@ -614,6 +615,12 @@ int main(int argc, char **argv) {
                     "Dijkstra's Algorithm",
                     "A* Search"
             };
+            const char *heuristics[] = {
+                    "Manhattan Distance",
+                    "Euclidean Distance",
+                    "Euclidean Distance Squared",
+                    "Diagonal Distance"
+            };
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -713,7 +720,12 @@ int main(int argc, char **argv) {
             }
 
             ImGui::SeparatorText("Solver Settings");
-            ImGui::Combo("Solver", &solver_algorithm, solver_algorithms, IM_ARRAYSIZE(solver_algorithms));
+            if (ImGui::Combo("Solver", &solver_algorithm, solver_algorithms, IM_ARRAYSIZE(solver_algorithms)))
+                solve_button_callback();
+            if (solver_algorithm == 2) {
+                if (ImGui::Combo("Heuristic", &heuristic, heuristics, IM_ARRAYSIZE(heuristics)))
+                    solve_button_callback();
+            }
 //            if (ImGui::Button("Solve"))
 //                solve_button_callback();
             ImGui::Checkbox("Show Solution", &show_solution);
