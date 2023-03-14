@@ -91,7 +91,7 @@ ImVec4 player_path_color = {1.0f, 0.0f, 0.0f, 1.0f};
 std::shared_ptr<VAO> player_path_vao;
 std::shared_ptr<VBO> player_path_vbo;
 std::shared_ptr<EBO> player_path_ebo;
-ImVec4 solution_from_player_color = {0.0f, 0.5f, 1.0f, 1.0f};
+ImVec4 solution_from_player_color = {0.0f, 185. / 255, 110. / 255, 1.0f};
 std::shared_ptr<VAO> solution_from_player_vao;
 std::shared_ptr<VBO> solution_from_player_vbo;
 std::shared_ptr<EBO> solution_from_player_ebo;
@@ -351,6 +351,7 @@ int main(int argc, char **argv) {
     background_ebo->unbind();
 
     auto now = std::chrono::high_resolution_clock::now();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
@@ -459,6 +460,7 @@ int main(int argc, char **argv) {
             }
 
             // Draw solution if wanted
+            glEnable(GL_BLEND);
             if (is_solvable && show_solution) {
                 glLineWidth(0.33f * WHITE_LINE_WIDTH);
                 solution_vao->bind();
@@ -478,6 +480,7 @@ int main(int argc, char **argv) {
             player_path_vao->bind();
             glDrawElements(GL_LINES, player_path_ebo->num_elements, GL_UNSIGNED_INT, 0);
             player_path_vao->unbind();
+            glDisable(GL_BLEND);
 
             // Draw player
             Drawing::draw_circle(player->get_x(), player->get_y(), PLAYER_RADIUS, player_color);
