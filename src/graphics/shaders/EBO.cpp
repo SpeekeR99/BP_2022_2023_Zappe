@@ -1,7 +1,7 @@
 #include "EBO.h"
 
 EBO::EBO(GLuint *indices, GLsizeiptr size) {
-    num_elements = size / sizeof(GLuint);
+    num_elements = static_cast<int>(size / sizeof(GLuint));
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);

@@ -96,3 +96,25 @@ std::vector<std::pair<int, int>> Solver::solve_maze_bfs(std::shared_ptr<Graph> &
 
     return result;
 }
+
+bool Solver::is_maze_solvable_dijkstra(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
+                                       const std::pair<int, int> &end) {
+    return false;
+}
+
+std::vector<std::pair<int, int>>
+Solver::solve_maze_dijkstra(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
+                            const std::pair<int, int> &end) {
+    return std::vector<std::pair<int, int>>();
+}
+
+bool Solver::is_maze_solvable_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
+                                     const std::pair<int, int> &end) {
+    return false;
+}
+
+std::vector<std::pair<int, int>>
+Solver::solve_maze_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
+                          const std::pair<int, int> &end) {
+    return std::vector<std::pair<int, int>>();
+}

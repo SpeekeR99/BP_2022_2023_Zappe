@@ -45,7 +45,6 @@ static int generator_algorithm = 0;
 static int solver_algorithm = 0;
 bool non_grid_version = false;
 std::unique_ptr<Player> player;
-int size_paths, buffer_paths;
 bool draw = false;
 bool paused = false;
 bool is_solvable = false;
@@ -65,7 +64,6 @@ int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 720;
 int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
 int GRID_SIZE = 50;
-float BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
 float WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
 float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
 float PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -157,6 +155,22 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
         }
+        else if (solver_algorithm == 1) {
+            is_solvable_from_player = Solver::is_maze_solvable_dijkstra(maze, {player->get_x(), player->get_y()},
+                                                                   {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                    maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+            solved_path_from_player = Solver::solve_maze_dijkstra(maze, {player->get_x(), player->get_y()},
+                                                            {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 2) {
+            is_solvable_from_player = Solver::is_maze_solvable_a_star(maze, {player->get_x(), player->get_y()},
+                                                                   {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                    maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+            solved_path_from_player = Solver::solve_maze_a_star(maze, {player->get_x(), player->get_y()},
+                                                            {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+        }
     }
     if (maze_type == 1) {
         if (solver_algorithm == 0) {
@@ -166,6 +180,22 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
             solved_path_from_player = Solver::solve_maze_bfs(ca->get_graph(), {player->get_x(), player->get_y()},
                                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 1) {
+            is_solvable_from_player = Solver::is_maze_solvable_dijkstra(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                        {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                         ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+            solved_path_from_player = Solver::solve_maze_dijkstra(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 2) {
+            is_solvable_from_player = Solver::is_maze_solvable_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                      {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                       ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+            solved_path_from_player = Solver::solve_maze_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                               {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
         }
     }
 
@@ -217,6 +247,122 @@ void update_background_color() {
     background_ebo->unbind();
 }
 
+void clear_button_callback() {
+    draw = false;
+}
+
+void solve_button_callback() {
+    if (maze_type == 0) {
+        if (solver_algorithm == 0) {
+            is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                       {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                        maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                 {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                  maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_bfs(maze, {player->get_x(), player->get_y()},
+                                                                  {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                   maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_bfs(maze, {player->get_x(), player->get_y()},
+                                                            {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 1) {
+            is_solvable = Solver::is_maze_solvable_dijkstra(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                            {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                             maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_dijkstra(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                        {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                         maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_dijkstra(maze, {player->get_x(), player->get_y()},
+                                                                       {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                        maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_dijkstra(maze, {player->get_x(), player->get_y()},
+                                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                    maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 2) {
+            is_solvable = Solver::is_maze_solvable_a_star(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                          {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                           maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_a_star(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
+                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_a_star(maze, {player->get_x(), player->get_y()},
+                                                                     {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                      maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_a_star(maze, {player->get_x(), player->get_y()},
+                                                                {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
+                                                                 maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
+        }
+    }
+    else if (maze_type == 1) {
+        if (solver_algorithm == 0) {
+            is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_bfs(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                  {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                   ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_bfs(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                            {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                             ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 1) {
+            is_solvable = Solver::is_maze_solvable_dijkstra(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                            {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                             ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_dijkstra(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                        {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                         ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_dijkstra(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_dijkstra(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                 {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                  ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
+        else if (solver_algorithm == 2) {
+            is_solvable = Solver::is_maze_solvable_a_star(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                          {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                           ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path = Solver::solve_maze_a_star(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
+                                                    {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            is_solvable_from_player = Solver::is_maze_solvable_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                     {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                      ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+
+            solved_path_from_player = Solver::solve_maze_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
+                                                                {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
+                                                                 ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
+        }
+    }
+
+    Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
+    Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo, solved_path_from_player, solution_from_player_color);
+}
+
 void reset_player_button_callback() {
     if (maze_type == 0 && maze) {
         player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
@@ -227,41 +373,8 @@ void reset_player_button_callback() {
         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
     }
     is_solved = false;
+    solve_button_callback();
     Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
-}
-
-void clear_button_callback() {
-    draw = false;
-}
-
-void solve_button_callback() {
-    if (maze == nullptr) return;
-    if (maze_type == 0) {
-        if (solver_algorithm == 0) {
-            is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
-                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
-
-            solved_path = Solver::solve_maze_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
-                                                     {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
-                                                      maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
-
-        }
-    }
-    else if (maze_type == 1) {
-        if (solver_algorithm == 0) {
-            is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-                                                    {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-
-            solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
-                                                        {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
-                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
-        }
-    }
-
-    is_solvable_from_player = is_solvable;
-    solved_path_from_player = solved_path;
 }
 
 void generate_button_callback() {
@@ -297,8 +410,6 @@ void generate_button_callback() {
 
     reset_player_button_callback();
     solve_button_callback();
-    Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
-    Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo, solved_path_from_player, solution_from_player_color);
 }
 
 int main(int argc, char **argv) {
@@ -364,7 +475,6 @@ int main(int argc, char **argv) {
     float rect_width, rect_height;
     Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
     Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
-
     background_vertices[0] = rect_x;
     background_vertices[1] = rect_y;
     background_vertices[5] = rect_x;
@@ -373,7 +483,6 @@ int main(int argc, char **argv) {
     background_vertices[11] = rect_height;
     background_vertices[15] = rect_width;
     background_vertices[16] = rect_y;
-
     update_background_color();
 
     auto now = std::chrono::high_resolution_clock::now();
@@ -392,68 +501,38 @@ int main(int argc, char **argv) {
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Setup shader
         glUseProgram(shader_default);
+
+        // Draw background
         background_vao->bind();
         glDrawElements(GL_QUADS, background_ebo->num_elements, GL_UNSIGNED_INT, 0);
         background_vao->unbind();
 
         if (draw) {
+            // Evolve the cellular automata
             if (!paused && maze_type == 1 && std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - now).count() > (int) (1000 * (1.0f - speed))) {
                 ca->next_generation();
                 Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
                 now = std::chrono::high_resolution_clock::now();
 
+                // Check if the player is standing on a dead node
                 auto player_node = ca->get_graph()->get_nearest_node_to(player->get_x(), player->get_y());
                 if (!(ca->get_graph()->get_nodes()[player_node]->is_alive())) {
+                    // Move the player to the nearest alive node
                     auto nearest_alive_node = ca->get_graph()->get_nearest_alive_node_to(player->get_x(), player->get_y());
                     player->move_to(ca->get_graph()->get_nodes()[nearest_alive_node]->get_x(),
                                     ca->get_graph()->get_nodes()[nearest_alive_node]->get_y());
                     Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
                 }
 
-                if (solver_algorithm == 0) {
-                    is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(),
-                                                               {ca->get_graph()->get_nodes()[0]->get_x(),
-                                                                ca->get_graph()->get_nodes()[0]->get_y()},
-                                                               {ca->get_graph()->get_nodes()[
-                                                                        ca->get_graph()->get_nodes().size() -
-                                                                        1]->get_x(),
-                                                                ca->get_graph()->get_nodes()[
-                                                                        ca->get_graph()->get_nodes().size() -
-                                                                        1]->get_y()});
-                    solved_path = Solver::solve_maze_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(),
-                                                                           ca->get_graph()->get_nodes()[0]->get_y()},
-                                                         {ca->get_graph()->get_nodes()[
-                                                                  ca->get_graph()->get_nodes().size() -
-                                                                  1]->get_x(),
-                                                          ca->get_graph()->get_nodes()[
-                                                                  ca->get_graph()->get_nodes().size() -
-                                                                  1]->get_y()});
-                    is_solvable_from_player = Solver::is_maze_solvable_bfs(ca->get_graph(),
-                                                                          {player->get_x(), player->get_y()},
-                                                                          {ca->get_graph()->get_nodes()[
-                                                                                   ca->get_graph()->get_nodes().size() -
-                                                                                   1]->get_x(),
-                                                                           ca->get_graph()->get_nodes()[
-                                                                                   ca->get_graph()->get_nodes().size() -
-                                                                                   1]->get_y()});
-                    solved_path_from_player = Solver::solve_maze_bfs(ca->get_graph(), {player->get_x(), player->get_y()},
-                                                                    {ca->get_graph()->get_nodes()[
-                                                                             ca->get_graph()->get_nodes().size() -
-                                                                             1]->get_x(),
-                                                                     ca->get_graph()->get_nodes()[
-                                                                             ca->get_graph()->get_nodes().size() -
-                                                                             1]->get_y()});
-                }
+                // Do the solutions
+                solve_button_callback();
 
                 // Check if the player has reached the end
                 is_solved = is_solved || (player->get_x() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x() &&
                                           player->get_y() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y());
-
-                Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
-                Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
-                                      solved_path_from_player, solution_from_player_color);
             }
 
             // Draw maze
@@ -532,7 +611,9 @@ int main(int argc, char **argv) {
                     "Orthogonal Grid Graph with Diagonals"
             };
             const char *solver_algorithms[] = {
-                    "Breadth First Search"
+                    "Breadth First Search",
+                    "Dijkstra's Algorithm",
+                    "A* Search"
             };
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -579,7 +660,6 @@ int main(int argc, char **argv) {
                     if (GRID_SIZE < 10) GRID_SIZE = 10;
                     if (GRID_SIZE > 100) GRID_SIZE = 100;
 
-                    BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
                     WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
                     WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -600,7 +680,6 @@ int main(int argc, char **argv) {
                     if (GRID_SIZE < 10) GRID_SIZE = 10;
                     if (GRID_SIZE > 100) GRID_SIZE = 100;
 
-                    BLACK_LINE_WIDTH = (float) GRID_SIZE * 1.33f;
                     WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
                     WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
