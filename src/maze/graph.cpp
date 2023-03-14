@@ -52,8 +52,8 @@ int Graph::get_nearest_alive_node_to(int x, int y) const {
 
     while (true) {
         auto nearest = -1;
-        auto nearest_dx = GRID_SIZE * 2;
-        auto nearest_dy = GRID_SIZE * 2;
+        auto nearest_dx = WINDOW_WIDTH;
+        auto nearest_dy = WINDOW_WIDTH;
 
         for (auto &node : get_nodes()) {
             auto dx = std::abs(node->get_x() - x);
@@ -105,7 +105,10 @@ std::shared_ptr<Graph> Graph::create_copy() const {
     auto copy = std::make_unique<Graph>(width, height);
     for (int i = 0; i < v; i++)
         copy->adj[i] = adj[i];
-    for (auto& node: nodes)
+    for (auto& node: nodes) {
         copy->set_node(node->get_v(), node->get_x(), node->get_y());
+        if (!node->is_alive())
+            copy->get_nodes()[node->get_v()]->set_alive(false);
+    }
     return copy;
 }

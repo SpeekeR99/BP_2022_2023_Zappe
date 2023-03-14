@@ -182,11 +182,13 @@ static void help_marker(const char* desc)
 }
 
 void reset_player_button_callback() {
-    if (maze_type == 0 && maze != nullptr) {
+    if (maze_type == 0 && maze) {
         player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
     }
-    else if (maze_type == 1 && ca != nullptr) {
+    else if (maze_type == 1 && ca) {
         player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
+        ca->reset();
+        Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
     }
     is_solved = false;
     Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
@@ -380,6 +382,7 @@ int main(int argc, char **argv) {
                     auto nearest_alive_node = ca->get_graph()->get_nearest_alive_node_to(player->get_x(), player->get_y());
                     player->move_to(ca->get_graph()->get_nodes()[nearest_alive_node]->get_x(),
                                     ca->get_graph()->get_nodes()[nearest_alive_node]->get_y());
+                    Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
                 }
 
                 if (solver_algorithm == 0) {
@@ -416,6 +419,11 @@ int main(int argc, char **argv) {
                                                                              ca->get_graph()->get_nodes().size() -
                                                                              1]->get_y()});
                 }
+
+                // Check if the player has reached the end
+                is_solved = is_solved || (player->get_x() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x() &&
+                                          player->get_y() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y());
+
                 Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
                 Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
                                       solved_path_from_player, solution_from_player_color);
@@ -630,7 +638,7 @@ int main(int argc, char **argv) {
             ImGui::SeparatorText("Controls");
             if (ImGui::Button("Generate"))
                 generate_button_callback();
-            if (ImGui::Button("Reset Player"))
+            if (ImGui::Button("Reset"))
                 reset_player_button_callback();
             if (ImGui::Button("Clear"))
                 clear_button_callback();
@@ -643,7 +651,9 @@ int main(int argc, char **argv) {
             if (show_settings_window) {
                 ImGui::Begin("Graphics Settings", &show_settings_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-                ImGui::SetWindowSize(ImVec2(600, 300));
+                ImGui::SetWindowSize(ImVec2(600, 400));
+
+                ImGui::SeparatorText("Window Settings");
 
                 if (ImGui::Button("Set 1280x720")) {
                     WINDOW_WIDTH = 1280;
@@ -692,6 +702,12 @@ int main(int argc, char **argv) {
                         fullscreen = false;
                     }
                 }
+                if (ImGui::InputFloat("Font Size", &font_size, 0.1f, 0.3f, "%.1f")) {
+                    if (font_size < 1.0f) font_size = 1.0f;
+                    if (font_size > 2.0f) font_size = 2.0f;
+                }
+                ImGui::SetWindowFontScale(font_size);
+                ImGui::SeparatorText("Colors");
                 static int style_idx = 0;
                 if (ImGui::Combo("Style", &style_idx, "Dark\0Light\0Classic\0"))
                 {
@@ -701,11 +717,6 @@ int main(int argc, char **argv) {
                         case 2: ImGui::StyleColorsClassic(); break;
                         default: break;
                     }
-                }
-                ImGui::SetWindowFontScale(font_size);
-                if (ImGui::InputFloat("Font Size", &font_size, 0.1f, 0.3f, "%.1f")) {
-                    if (font_size < 1.0f) font_size = 1.0f;
-                    if (font_size > 2.0f) font_size = 2.0f;
                 }
                 if (ImGui::ColorEdit3("Background Color", (float*)&background_color)) {
                     background_vertices[2] = background_color.x;
@@ -731,7 +742,26 @@ int main(int argc, char **argv) {
                     background_vbo->unbind();
                     background_ebo->unbind();
                 }
-
+                if (ImGui::ColorEdit3("Maze Paths Color", (float*)&paths_color)) {
+                    if (maze_type == 0 && maze)
+                        Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, maze, paths_color);
+                    else if (maze_type == 1 && ca)
+                        Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
+                }
+                ImGui::ColorEdit3("Start and End Color", (float*)&start_end_color);
+                ImGui::ColorEdit3("Player Color", (float*)&player_color);
+                if (ImGui::ColorEdit3("Player Path Color", (float*)&player_path_color)) {
+                    if (player)
+                        Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
+                }
+                if (ImGui::ColorEdit3("Solution Color", (float*)&solution_color)) {
+                    if (!solved_path.empty())
+                        Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
+                }
+                if (ImGui::ColorEdit3("Solution from Player Color", (float*)&solution_from_player_color)) {
+                    if (!solved_path_from_player.empty())
+                        Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo, solved_path_from_player, solution_from_player_color);
+                }
                 ImGui::End();
             }
         }
@@ -762,21 +792,21 @@ int main(int argc, char **argv) {
 
     // Cleanup
     glDeleteProgram(shader_default);
-    background_vao->del();
-    background_vbo->del();
-    background_ebo->del();
-    paths_vao->del();
-    paths_vbo->del();
-    paths_ebo->del();
-    solution_vao->del();
-    solution_vbo->del();
-    solution_ebo->del();
-    player_path_vao->del();
-    player_path_vbo->del();
-    player_path_ebo->del();
-    solution_from_player_vao->del();
-    solution_from_player_vbo->del();
-    solution_from_player_ebo->del();
+    if (background_vao) background_vao->del();
+    if (background_vbo) background_vbo->del();
+    if (background_ebo) background_ebo->del();
+    if (paths_vao) paths_vao->del();
+    if (paths_vbo) paths_vbo->del();
+    if (paths_ebo) paths_ebo->del();
+    if (solution_vao) solution_vao->del();
+    if (solution_vbo) solution_vbo->del();
+    if (solution_ebo) solution_ebo->del();
+    if (player_path_vao) player_path_vao->del();
+    if (player_path_vbo) player_path_vbo->del();
+    if (player_path_ebo) player_path_ebo->del();
+    if (solution_from_player_vao) solution_from_player_vao->del();
+    if (solution_from_player_vbo) solution_from_player_vbo->del();
+    if (solution_from_player_ebo) solution_from_player_ebo->del();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

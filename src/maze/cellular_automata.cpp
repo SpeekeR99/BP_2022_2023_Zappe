@@ -14,7 +14,7 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
     if (init_square_w > -1)
         width = init_square_w;
 
-    for (int i = 0; i < graph->get_v(); i++) {
+    for (int i = 1; i < graph->get_v() - 1; i++) {
         if (i / graph->get_width() < width && i % graph->get_width() < width) {
             if (dis(gen) == 1) {
                 graph->get_nodes()[i]->set_alive(false);
@@ -29,6 +29,8 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
         }
     }
 
+    initialized_graph = graph->create_copy();
+
     for (int i = 0; i < rule_string.length(); i++) {
         if (rule_string[i] == 'B') {
             for (int j = i + 1; j < rule_string.find_first_of('/'); j++) {
@@ -41,9 +43,6 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
             }
         }
     }
-
-    graph->get_nodes()[0]->set_alive(true);
-    graph->get_nodes()[graph->get_v() - 1]->set_alive(true);
 }
 
 std::shared_ptr<Graph> &CellularAutomata::get_graph() {
@@ -77,7 +76,8 @@ void CellularAutomata::next_generation() {
         }
         if (new_graph->get_nodes()[i]->is_alive()) {
             for (int possible_neighbor: possible_neighbors) {
-                new_graph->add_edge(i, possible_neighbor);
+                if (new_graph->get_nodes()[possible_neighbor]->is_alive())
+                    new_graph->add_edge(i, possible_neighbor);
             }
         } else {
             for (int j = 0; j < new_graph->get_v(); j++) {
@@ -87,4 +87,8 @@ void CellularAutomata::next_generation() {
     }
 
     graph = new_graph;
+}
+
+void CellularAutomata::reset() {
+    graph = initialized_graph->create_copy();
 }
