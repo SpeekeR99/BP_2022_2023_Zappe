@@ -14,16 +14,9 @@ void Drawing::transform_rgb_to_opengl(std::array<int, 3> color, float &red, floa
 void Drawing::draw_circle(int x, int y, float radius, ImVec4 color) {
     float x_opengl, y_opengl;
     transform_x_y_to_opengl(x + WINDOW_X_OFFSET, y, x_opengl, y_opengl);
-    float radius_x = radius / 2.0f, radius_y = radius / 2.0f;
-    if (WINDOW_WIDTH > WINDOW_HEIGHT) {
-        radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
+    float radius_x = radius / (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+    float radius_y = radius * (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH)) *
                    (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-    } else if (WINDOW_WIDTH < WINDOW_HEIGHT) {
-        radius_x = radius * (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)) *
-                   (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
-        radius_y = radius / (static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(WINDOW_WIDTH));
-    }
     int num_segments = 36;
 
     auto *vertices = new GLfloat[(num_segments + 1) * 2 * 5];

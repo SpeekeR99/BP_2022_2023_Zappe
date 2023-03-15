@@ -69,8 +69,8 @@ int WINDOW_HEIGHT = 720;
 int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
 int GRID_SIZE = 50;
 float WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-float WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-float PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+float WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+float PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
 bool fullscreen = false;
 bool show_settings_window = false;
 bool show_about_window = false;
@@ -671,8 +671,8 @@ int main(int argc, char **argv) {
                 if (GRID_SIZE > 100) GRID_SIZE = 100;
 
                 WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+                PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
                 clear_button_callback();
             }
             ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
@@ -781,6 +781,8 @@ int main(int argc, char **argv) {
                     WINDOW_WIDTH = 1280;
                     WINDOW_HEIGHT = 720;
                     WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
+                    WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+                    PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
                     Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
                     Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
                     glfwSetWindowSize(window, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -792,6 +794,8 @@ int main(int argc, char **argv) {
                     WINDOW_WIDTH = 1600;
                     WINDOW_HEIGHT = 900;
                     WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
+                    WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+                    PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
                     Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
                     Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
                     glfwSetWindowSize(window, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -804,6 +808,8 @@ int main(int argc, char **argv) {
                         WINDOW_WIDTH = mode->width;
                         WINDOW_HEIGHT = mode->height;
                         WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
+                        WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+                        PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
                         Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
                         Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
                         glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
@@ -816,6 +822,8 @@ int main(int argc, char **argv) {
                         WINDOW_WIDTH = 1280;
                         WINDOW_HEIGHT = 720;
                         WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
+                        WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
+                        PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
                         Drawing::transform_x_y_to_opengl(WINDOW_X_OFFSET, 0, rect_x, rect_y);
                         Drawing::transform_x_y_to_opengl(WINDOW_WIDTH, WINDOW_HEIGHT, rect_width, rect_height);
                         glfwSetWindowMonitor(window, nullptr, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
