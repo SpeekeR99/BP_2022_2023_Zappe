@@ -130,3 +130,9 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
 
     return maze;
 }
+
+std::shared_ptr<Graph>
+Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_bias, float vertical_bias,
+                                 float cycle_bias) {
+    return std::shared_ptr<Graph>();
+}

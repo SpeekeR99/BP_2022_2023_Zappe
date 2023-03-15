@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-
 constexpr double PI = 3.14159265359;
 extern int WINDOW_WIDTH;
 extern int WINDOW_HEIGHT;
@@ -31,17 +29,18 @@ enum class NeighborhoodGraphType {
 
 enum class GeneratorType {
     DEPTH_FIRST_SEARCH = 0,
+    KRUSKAL = 1
 };
 
 enum class SolverType {
     BREATH_FIRST_SEARCH = 0,
     DIJKSTRA = 1,
-    A_STAR = 2,
+    A_STAR = 2
 };
 
 enum class HeuristicType {
     CONSTANT_ZERO = -1,
     MANHATTAN_DISTANCE = 0,
     EUCLIDEAN_DISTANCE = 1,
-    COSINE_DISTANCE = 2,
+    COSINE_DISTANCE = 2
 };

@@ -41,7 +41,7 @@ std::shared_ptr<CellularAutomata> ca;
 static GraphType graph_type = GraphType::ORTHOGONAL;
 static NeighborhoodGraphType neighborhood_graph_type = NeighborhoodGraphType::SAME_AS_GRAPH_TYPE;
 static MazeType maze_type = MazeType::STATIC;
-static GeneratorType generator_algorithm = GeneratorType::DEPTH_FIRST_SEARCH;
+static GeneratorType generator_algorithm = GeneratorType::KRUSKAL;
 static SolverType solver_algorithm = SolverType::A_STAR;
 static HeuristicType heuristic = HeuristicType::EUCLIDEAN_DISTANCE;
 bool non_grid_version = false;
@@ -60,6 +60,9 @@ float speed = 0.6f;
 bool is_solvable_from_player = false;
 std::vector<std::pair<int, int>> solved_path_from_player;
 bool show_solution_from_player = false;
+float horizontal_bias = 0.5f;
+float vertical_bias = 0.5f;
+float cycle_bias = 0.0f;
 
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 720;
@@ -391,6 +394,8 @@ void generate_button_callback() {
     if (maze_type == MazeType::STATIC) {
         if (generator_algorithm == GeneratorType::DEPTH_FIRST_SEARCH)
             maze = Generator::generate_maze_dfs(graph);
+        else if (generator_algorithm == GeneratorType::KRUSKAL)
+            maze = Generator::generate_maze_kruskal(graph, horizontal_bias, vertical_bias, cycle_bias);
 
         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, maze, paths_color);
     }
@@ -602,7 +607,8 @@ int main(int argc, char **argv) {
                     "Orthogonal Grid Graph with Diagonals"
             };
             const char *generator_algorithms[] = {
-                    "Depth First Search"
+                    "Depth First Search",
+                    "Kruskal's Algorithm",
             };
             const char *neighborhood_graph_types[] = {
                     "Same as Graph Type",
@@ -659,41 +665,35 @@ int main(int argc, char **argv) {
                 is_solved = false;
             }
 
+            ImGui::SeparatorText("Graph Settings");
+            if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
+                if (GRID_SIZE < 10) GRID_SIZE = 10;
+                if (GRID_SIZE > 100) GRID_SIZE = 100;
+
+                WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
+                WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
+                clear_button_callback();
+            }
+            ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
+            ImGui::Checkbox("Non-Grid", &non_grid_version);
+            ImGui::SameLine();
+            help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
+
             if (maze_type == MazeType::STATIC) {
-                ImGui::SeparatorText("Graph Settings");
-                if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
-                    if (GRID_SIZE < 10) GRID_SIZE = 10;
-                    if (GRID_SIZE > 100) GRID_SIZE = 100;
-
-                    WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                    WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                    PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                    clear_button_callback();
-                }
-                ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
-                ImGui::Checkbox("Non-Grid", &non_grid_version);
-                ImGui::SameLine();
-                help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
-
                 ImGui::SeparatorText("Generator Settings");
                 ImGui::Combo("Generator", (int *) &generator_algorithm, generator_algorithms, IM_ARRAYSIZE(generator_algorithms));
+
+                if (generator_algorithm == GeneratorType::KRUSKAL) {
+                    if (ImGui::SliderFloat("Horizontal Bias", &horizontal_bias, 0.0f, 1.0))
+                        vertical_bias = 1.0f - horizontal_bias;
+                    if (ImGui::SliderFloat("Vertical Bias", &vertical_bias, 0.0f, 1.0))
+                        horizontal_bias = 1.0f - vertical_bias;
+                    ImGui::SliderFloat("Cycle Bias", &cycle_bias, 0.0f, 1.0f);
+                }
             }
 
             else if (maze_type == MazeType::DYNAMIC) {
-                ImGui::SeparatorText("Graph Settings");
-                if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
-                    if (GRID_SIZE < 10) GRID_SIZE = 10;
-                    if (GRID_SIZE > 100) GRID_SIZE = 100;
-
-                    WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
-                    WHITE_NODE_RADIUS = 2 * WHITE_LINE_WIDTH / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                    PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
-                    clear_button_callback();
-                }
-                ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
-                ImGui::Checkbox("Non-Grid", &non_grid_version);
-                ImGui::SameLine();
-                help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
                 ImGui::Combo("Neighborhood Graph", (int *) &neighborhood_graph_type, neighborhood_graph_types, IM_ARRAYSIZE(neighborhood_graph_types));
                 ImGui::SameLine();
                 help_marker("Neighborhood Graph is the graph that is used as reference for possible neighborhoods checking\nChecking doesn't necessarily mean that the original Base Graph is able to have these edges\nExample: Game of Life uses Base Graph with 4-neighborhood and Neighborhood Graph with 8-neighborhood");
