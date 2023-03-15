@@ -38,12 +38,12 @@ std::shared_ptr<Graph> graph;
 std::shared_ptr<Graph> maze;
 std::shared_ptr<Graph> neighborhood;
 std::shared_ptr<CellularAutomata> ca;
-static int graph_type = 0;
-static int neighborhood_graph_type = 0;
-static int maze_type = 0;
-static int generator_algorithm = 0;
-static int solver_algorithm = 2;
-static int heuristic = 1;
+static GraphType graph_type = GraphType::ORTHOGONAL;
+static NeighborhoodGraphType neighborhood_graph_type = NeighborhoodGraphType::SAME_AS_GRAPH_TYPE;
+static MazeType maze_type = MazeType::STATIC;
+static GeneratorType generator_algorithm = GeneratorType::DEPTH_FIRST_SEARCH;
+static SolverType solver_algorithm = SolverType::A_STAR;
+static HeuristicType heuristic = HeuristicType::EUCLIDEAN_DISTANCE;
 bool non_grid_version = false;
 std::unique_ptr<Player> player;
 bool draw = false;
@@ -82,7 +82,7 @@ std::shared_ptr<VBO> paths_vbo;
 std::shared_ptr<EBO> paths_ebo;
 ImVec4 start_end_color = {0.0f, 0.0f, 1.0f, 1.0f};
 ImVec4 player_color = {0.0f, 1.0f, 0.0f, 1.0f};
-ImVec4 solution_color = {0.0f, 0.0f, 1.0f, 1.0f};
+ImVec4 solution_color = {0.0f, 25. / 255, 185. / 255, 1.0f};
 std::shared_ptr<VAO> solution_vao;
 std::shared_ptr<VBO> solution_vbo;
 std::shared_ptr<EBO> solution_ebo;
@@ -116,7 +116,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     if (new_x < GRID_SIZE / 2 || new_x > WINDOW_HEIGHT - GRID_SIZE / 2 || new_y < GRID_SIZE / 2 || new_y > WINDOW_HEIGHT - GRID_SIZE / 2)
         return;
 
-    if (maze_type == 0) {
+    if (maze_type == MazeType::STATIC) {
         auto nearest_to_player = maze->get_nearest_node_to(player->get_x(), player->get_y());
         auto nearest_to_mouse = maze->get_nearest_node_to(new_x, new_y);
 
@@ -125,7 +125,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
             moved = true;
         }
     }
-    else if (maze_type == 1 && paused) {
+    else if (maze_type == MazeType::DYNAMIC && paused) {
         auto nearest_to_player = ca->get_graph()->get_nearest_node_to(player->get_x(), player->get_y());
         auto nearest_to_mouse = ca->get_graph()->get_nearest_node_to(new_x, new_y);
 
@@ -139,16 +139,16 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         return;
 
     // Check if the player has reached the end
-    if (maze_type == 0)
+    if (maze_type == MazeType::STATIC)
         is_solved = is_solved || (player->get_x() == maze->get_nodes()[maze->get_v() - 1]->get_x() &&
                                   player->get_y() == maze->get_nodes()[maze->get_v() - 1]->get_y());
-    else if (maze_type == 1)
+    else if (maze_type == MazeType::DYNAMIC)
         is_solved = is_solved || (player->get_x() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x() &&
                                   player->get_y() == ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_y());
 
     // Check the solvability of the maze from the player's position
-    if (maze_type == 0) {
-        if (solver_algorithm == 0) {
+    if (maze_type == MazeType::STATIC) {
+        if (solver_algorithm == SolverType::BREATH_FIRST_SEARCH) {
             is_solvable_from_player = Solver::is_maze_solvable_bfs(maze, {player->get_x(), player->get_y()},
                                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
@@ -156,7 +156,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 1) {
+        else if (solver_algorithm == SolverType::DIJKSTRA) {
             is_solvable_from_player = Solver::is_maze_solvable_dijkstra(maze, {player->get_x(), player->get_y()},
                                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
@@ -164,7 +164,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 2) {
+        else if (solver_algorithm == SolverType::A_STAR) {
             is_solvable_from_player = Solver::is_maze_solvable_a_star(maze, {player->get_x(), player->get_y()},
                                                                    {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
@@ -173,8 +173,8 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
-    if (maze_type == 1) {
-        if (solver_algorithm == 0) {
+    if (maze_type == MazeType::DYNAMIC) {
+        if (solver_algorithm == SolverType::BREATH_FIRST_SEARCH) {
             is_solvable_from_player = Solver::is_maze_solvable_bfs(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                    {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                                     ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
@@ -182,7 +182,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 1) {
+        else if (solver_algorithm == SolverType::DIJKSTRA) {
             is_solvable_from_player = Solver::is_maze_solvable_dijkstra(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                         {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                                          ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
@@ -190,7 +190,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
                                                                  {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                                   ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 2) {
+        else if (solver_algorithm == SolverType::A_STAR) {
             is_solvable_from_player = Solver::is_maze_solvable_a_star(ca->get_graph(), {player->get_x(), player->get_y()},
                                                                       {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                                        ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
@@ -253,8 +253,8 @@ void clear_button_callback() {
 }
 
 void solve_button_callback() {
-    if (maze_type == 0) {
-        if (solver_algorithm == 0) {
+    if (maze_type == MazeType::STATIC && maze) {
+        if (solver_algorithm == SolverType::BREATH_FIRST_SEARCH) {
             is_solvable = Solver::is_maze_solvable_bfs(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                        {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                         maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
@@ -271,7 +271,7 @@ void solve_button_callback() {
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 1) {
+        else if (solver_algorithm == SolverType::DIJKSTRA) {
             is_solvable = Solver::is_maze_solvable_dijkstra(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                             {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                              maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
@@ -288,7 +288,7 @@ void solve_button_callback() {
                                                                     {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                                     maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 2) {
+        else if (solver_algorithm == SolverType::A_STAR) {
             is_solvable = Solver::is_maze_solvable_a_star(maze, {maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y()},
                                                           {maze->get_nodes()[maze->get_nodes().size() - 1]->get_x(),
                                                            maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
@@ -306,8 +306,8 @@ void solve_button_callback() {
                                                                  maze->get_nodes()[maze->get_nodes().size() - 1]->get_y()}, heuristic);
         }
     }
-    else if (maze_type == 1) {
-        if (solver_algorithm == 0) {
+    else if (maze_type == MazeType::DYNAMIC && ca) {
+        if (solver_algorithm == SolverType::BREATH_FIRST_SEARCH) {
             is_solvable = Solver::is_maze_solvable_bfs(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                        {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                         ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
@@ -324,7 +324,7 @@ void solve_button_callback() {
                                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 1) {
+        else if (solver_algorithm == SolverType::DIJKSTRA) {
             is_solvable = Solver::is_maze_solvable_dijkstra(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                             {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                              ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
@@ -341,7 +341,7 @@ void solve_button_callback() {
                                                                  {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                                   ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()});
         }
-        else if (solver_algorithm == 2) {
+        else if (solver_algorithm == SolverType::A_STAR) {
             is_solvable = Solver::is_maze_solvable_a_star(ca->get_graph(), {ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y()},
                                                           {ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_x(),
                                                            ca->get_graph()->get_nodes()[ca->get_graph()->get_nodes().size() - 1]->get_y()}, heuristic);
@@ -365,10 +365,10 @@ void solve_button_callback() {
 }
 
 void reset_player_button_callback() {
-    if (maze_type == 0 && maze) {
+    if (maze_type == MazeType::STATIC && maze) {
         player = std::make_unique<Player>(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y());
     }
-    else if (maze_type == 1 && ca) {
+    else if (maze_type == MazeType::DYNAMIC && ca) {
         player = std::make_unique<Player>(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y());
         ca->reset();
         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
@@ -381,27 +381,27 @@ void reset_player_button_callback() {
 void generate_button_callback() {
     draw = true;
 
-    if (graph_type == 0)
+    if (graph_type == GraphType::ORTHOGONAL)
         graph = Generator::create_orthogonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
-    else if (graph_type == 1)
+    else if (graph_type == GraphType::HEXAGONAL)
         graph = Generator::create_hexagonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
-    else if (graph_type == 2)
+    else if (graph_type == GraphType::LAPLACIAN)
         graph = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
 
-    if (maze_type == 0) {
-        if (generator_algorithm == 0)
+    if (maze_type == MazeType::STATIC) {
+        if (generator_algorithm == GeneratorType::DEPTH_FIRST_SEARCH)
             maze = Generator::generate_maze_dfs(graph);
 
         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, maze, paths_color);
     }
-    else if (maze_type == 1) {
-        if (neighborhood_graph_type == 0)
+    else if (maze_type == MazeType::DYNAMIC) {
+        if (neighborhood_graph_type == NeighborhoodGraphType::SAME_AS_GRAPH_TYPE)
             neighborhood = graph->create_copy();
-        else if (neighborhood_graph_type == 1)
+        else if (neighborhood_graph_type == NeighborhoodGraphType::ORTHOGONAL)
             neighborhood = Generator::create_orthogonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
-        else if (neighborhood_graph_type == 2)
+        else if (neighborhood_graph_type == NeighborhoodGraphType::HEXAGONAL)
             neighborhood = Generator::create_hexagonal_grid_graph(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
-        else if (neighborhood_graph_type == 3)
+        else if (neighborhood_graph_type == NeighborhoodGraphType::LAPLACIAN)
             neighborhood = Generator::create_orthogonal_grid_graph_laplacian(WINDOW_HEIGHT / GRID_SIZE - 1, WINDOW_HEIGHT / GRID_SIZE - 1, non_grid_version);
 
         ca = std::make_unique<CellularAutomata>(rulestring, graph, neighborhood, initialize_square_size);
@@ -511,7 +511,7 @@ int main(int argc, char **argv) {
 
         if (draw) {
             // Evolve the cellular automata
-            if (!paused && maze_type == 1 && std::chrono::duration_cast<std::chrono::milliseconds>(
+            if (!paused && maze_type == MazeType::DYNAMIC && std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - now).count() > (int) (1000 * (1.0f - speed))) {
                 ca->next_generation();
                 Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
@@ -541,22 +541,22 @@ int main(int argc, char **argv) {
             glDrawElements(GL_LINES, paths_ebo->num_elements, GL_UNSIGNED_INT, 0);
             paths_vao->unbind();
 
-            if (maze_type == 0) {
+            if (maze_type == MazeType::STATIC) {
                 for (auto &node: maze->get_nodes())
                     Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
             }
-            else if (maze_type == 1) {
+            else if (maze_type == MazeType::DYNAMIC) {
                 for (auto &node: ca->get_graph()->get_nodes())
                     if (node->is_alive())
                         Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
             }
 
             // Color the start and end nodes
-            if (maze_type == 0) {
+            if (maze_type == MazeType::STATIC) {
                 Drawing::draw_circle(maze->get_nodes()[0]->get_x(), maze->get_nodes()[0]->get_y(), PLAYER_RADIUS * 1.5f, start_end_color);
                 Drawing::draw_circle(maze->get_nodes()[maze->get_v() - 1]->get_x(), maze->get_nodes()[maze->get_v() - 1]->get_y(), PLAYER_RADIUS * 1.5f, start_end_color);
             }
-            else if (maze_type == 1) {
+            else if (maze_type == MazeType::DYNAMIC) {
                 Drawing::draw_circle(ca->get_graph()->get_nodes()[0]->get_x(), ca->get_graph()->get_nodes()[0]->get_y(),
                                      PLAYER_RADIUS * 1.5f, start_end_color);
                 Drawing::draw_circle(ca->get_graph()->get_nodes()[ca->get_graph()->get_v() - 1]->get_x(),
@@ -618,8 +618,7 @@ int main(int argc, char **argv) {
             const char *heuristics[] = {
                     "Manhattan Distance",
                     "Euclidean Distance",
-                    "Euclidean Distance Squared",
-                    "Diagonal Distance"
+                    "Cosine Distance"
             };
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -653,14 +652,14 @@ int main(int argc, char **argv) {
             }
 
             ImGui::SeparatorText("Maze Type");
-            if (ImGui::Combo("", &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
+            if (ImGui::Combo("", (int *) &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
                 clear_button_callback();
                 is_solvable = false;
                 is_solvable_from_player = false;
                 is_solved = false;
             }
 
-            if (maze_type == 0) {
+            if (maze_type == MazeType::STATIC) {
                 ImGui::SeparatorText("Graph Settings");
                 if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
                     if (GRID_SIZE < 10) GRID_SIZE = 10;
@@ -671,16 +670,16 @@ int main(int argc, char **argv) {
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     clear_button_callback();
                 }
-                ImGui::Combo("Base Graph", &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
+                ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
                 ImGui::Checkbox("Non-Grid", &non_grid_version);
                 ImGui::SameLine();
                 help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
 
                 ImGui::SeparatorText("Generator Settings");
-                ImGui::Combo("Generator", &generator_algorithm, generator_algorithms, IM_ARRAYSIZE(generator_algorithms));
+                ImGui::Combo("Generator", (int *) &generator_algorithm, generator_algorithms, IM_ARRAYSIZE(generator_algorithms));
             }
 
-            else if (maze_type == 1) {
+            else if (maze_type == MazeType::DYNAMIC) {
                 ImGui::SeparatorText("Graph Settings");
                 if (ImGui::InputInt("Grid Size", &GRID_SIZE, 1, 5)) {
                     if (GRID_SIZE < 10) GRID_SIZE = 10;
@@ -691,11 +690,11 @@ int main(int argc, char **argv) {
                     PLAYER_RADIUS = (float) GRID_SIZE * 0.5f / (float) std::max(WINDOW_WIDTH, WINDOW_HEIGHT);
                     clear_button_callback();
                 }
-                ImGui::Combo("Base Graph", &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
+                ImGui::Combo("Base Graph", (int *) &graph_type, graph_types, IM_ARRAYSIZE(graph_types));
                 ImGui::Checkbox("Non-Grid", &non_grid_version);
                 ImGui::SameLine();
                 help_marker("Non-Grid means that the graph appears as if it was not a grid\nEvery cell is randomly moved a little bit");
-                ImGui::Combo("Neighborhood Graph", &neighborhood_graph_type, neighborhood_graph_types, IM_ARRAYSIZE(neighborhood_graph_types));
+                ImGui::Combo("Neighborhood Graph", (int *) &neighborhood_graph_type, neighborhood_graph_types, IM_ARRAYSIZE(neighborhood_graph_types));
                 ImGui::SameLine();
                 help_marker("Neighborhood Graph is the graph that is used as reference for possible neighborhoods checking\nChecking doesn't necessarily mean that the original Base Graph is able to have these edges\nExample: Game of Life uses Base Graph with 4-neighborhood and Neighborhood Graph with 8-neighborhood");
 
@@ -720,14 +719,12 @@ int main(int argc, char **argv) {
             }
 
             ImGui::SeparatorText("Solver Settings");
-            if (ImGui::Combo("Solver", &solver_algorithm, solver_algorithms, IM_ARRAYSIZE(solver_algorithms)))
+            if (ImGui::Combo("Solver", (int *) &solver_algorithm, solver_algorithms, IM_ARRAYSIZE(solver_algorithms)))
                 solve_button_callback();
-            if (solver_algorithm == 2) {
-                if (ImGui::Combo("Heuristic", &heuristic, heuristics, IM_ARRAYSIZE(heuristics)))
+            if (solver_algorithm == SolverType::A_STAR) {
+                if (ImGui::Combo("Heuristic", (int *) &heuristic, heuristics, IM_ARRAYSIZE(heuristics)))
                     solve_button_callback();
             }
-//            if (ImGui::Button("Solve"))
-//                solve_button_callback();
             ImGui::Checkbox("Show Solution", &show_solution);
             ImGui::Checkbox("Show Solution from the Player", &show_solution_from_player);
 
@@ -854,9 +851,9 @@ int main(int argc, char **argv) {
                     update_background_color();
                 }
                 if (ImGui::ColorEdit3("Maze Paths Color", (float*)&paths_color)) {
-                    if (maze_type == 0 && maze)
+                    if (maze_type == MazeType::STATIC && maze)
                         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, maze, paths_color);
-                    else if (maze_type == 1 && ca)
+                    else if (maze_type == MazeType::DYNAMIC && ca)
                         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
                 }
                 ImGui::ColorEdit3("Start and End Color", (float*)&start_end_color);
