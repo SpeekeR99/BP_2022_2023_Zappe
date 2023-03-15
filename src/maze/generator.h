@@ -4,7 +4,9 @@
 #include <vector>
 #include <random>
 #include <chrono>
+#include <algorithm>
 #include "graph.h"
+#include "disjoint_union_sets.h"
 
 class Generator {
 public:

@@ -31,8 +31,8 @@ add_executable(
     src/maze/node.h
     src/maze/generator.cpp
     src/maze/generator.h
-        src/graphics/shaders/shader.cpp
-        src/graphics/shaders/shader.h
+    src/graphics/shaders/shader.cpp
+    src/graphics/shaders/shader.h
     src/const.h
     src/player.cpp
     src/player.h
@@ -40,6 +40,14 @@ add_executable(
     src/maze/cellular_automata.h
     src/maze/solver.cpp
     src/maze/solver.h
+    src/graphics/shaders/VAO.cpp
+    src/graphics/shaders/VAO.h
+    src/graphics/shaders/VBO.cpp
+    src/graphics/shaders/VBO.h
+    src/graphics/shaders/EBO.cpp
+    src/graphics/shaders/EBO.h
+    src/maze/disjoint_union_sets.cpp
+    src/maze/disjoint_union_sets.h
 
     lib/imgui/imconfig.h
     lib/imgui/imgui.cpp
@@ -58,6 +66,6 @@ add_executable(
     lib/imgui/backends/imgui_impl_opengl3_loader.h
     lib/imgui/misc/cpp/imgui_stdlib.cpp
     lib/imgui/misc/cpp/imgui_stdlib.h
-        src/graphics/shaders/VAO.cpp src/graphics/shaders/VAO.h src/graphics/shaders/VBO.cpp src/graphics/shaders/VBO.h src/graphics/shaders/EBO.cpp src/graphics/shaders/EBO.h)
+)
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARY})

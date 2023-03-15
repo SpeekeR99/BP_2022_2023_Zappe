@@ -131,8 +131,122 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
     return maze;
 }
 
+bool is_horizontal(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) > abs(y1 - y2);
+}
+
 std::shared_ptr<Graph>
 Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_bias, float vertical_bias,
                                  float cycle_bias) {
-    return std::shared_ptr<Graph>();
+    int to_add = (int) (cycle_bias * (float) (maze->get_width() * maze->get_height() - maze->get_width() - maze->get_height() + 1));
+    int total_walls = maze->get_width() * maze->get_height() - maze->get_width() - maze->get_height() - to_add + 1;
+    int horizontal_walls = (int) (vertical_bias * (float) total_walls);
+    int vertical_walls = total_walls - horizontal_walls;
+    int horizontal_edges = (maze->get_height() - 1) * maze->get_width() - horizontal_walls;
+    int vertical_edges = (maze->get_width() - 1) * maze->get_height() - vertical_walls;
+    int counter_horizontal = 0;
+    int counter_vertical = 0;
+    std::shared_ptr<Graph> available_edges = maze->create_copy();
+    std::shared_ptr<Graph> maze_copy = maze->create_copy();
+    Disjoint_union_sets disjoint_union_sets(maze->get_v());
+
+    std::default_random_engine gen(std::chrono::system_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution dis(0, RAND_MAX);
+
+    for (int i = 0; i < maze->get_v(); i++) {
+        std::shuffle(maze_copy->get_adj()[i].begin(), maze_copy->get_adj()[i].end(), gen);
+        for (int j : maze->get_adj()[i]) {
+            maze->remove_edge(i, j);
+        }
+    }
+
+    std::vector<int> random_indices = std::vector<int>(maze->get_v());
+    std::iota(random_indices.begin(), random_indices.end(), 0);
+    std::shuffle(random_indices.begin(), random_indices.end(), gen);
+
+    for (int i = 0; i < maze->get_height() - 1; i++) {
+        bool break_flag = false;
+        for (int j : random_indices) {
+            for (int k : random_indices) {
+                if (j % maze->get_height() == i && k % maze->get_height() == i + 1 && available_edges->is_adjacent(j, k)) {
+                    maze->add_edge(j, k);
+                    available_edges->remove_edge(j, k);
+                    disjoint_union_sets.merge(j, k);
+                    counter_vertical++;
+                    break_flag = true;
+                    break;
+                }
+            }
+            if (break_flag)
+                break;
+        }
+    }
+
+    for (int i = 0; i < maze->get_width() - 1; i++) {
+        bool break_flag = false;
+        for (int j : random_indices) {
+            for (int k : random_indices) {
+                if (j / maze->get_height() == i && k / maze->get_height() == i + 1 && available_edges->is_adjacent(j, k)) {
+                    maze->add_edge(j, k);
+                    available_edges->remove_edge(j, k);
+                    disjoint_union_sets.merge(j, k);
+                    counter_horizontal++;
+                    break_flag = true;
+                    break;
+                }
+            }
+            if (break_flag)
+                break;
+        }
+    }
+
+    for (int i : random_indices) {
+        for (int j : maze_copy->get_adj()[i]) {
+            if (disjoint_union_sets.find(i) != disjoint_union_sets.find(j)) {
+                if (is_horizontal(maze->get_nodes()[i]->get_x(), maze->get_nodes()[i]->get_y(),
+                                  maze->get_nodes()[j]->get_x(), maze->get_nodes()[j]->get_y())) {
+                    if (counter_horizontal < horizontal_edges) {
+                        maze->add_edge(i, j);
+                        available_edges->remove_edge(i, j);
+                        disjoint_union_sets.merge(i, j);
+                        counter_horizontal++;
+                    }
+                } else {
+                    if (counter_vertical < vertical_edges) {
+                        maze->add_edge(i, j);
+                        available_edges->remove_edge(i, j);
+                        disjoint_union_sets.merge(i, j);
+                        counter_vertical++;
+                    }
+                }
+            }
+        }
+    }
+
+    while (counter_horizontal + counter_vertical < horizontal_edges + vertical_edges) {
+        for (int i : random_indices) {
+            for (int j : random_indices) {
+                if (available_edges->is_adjacent(i, j)) {
+                    if (is_horizontal(maze->get_nodes()[i]->get_x(), maze->get_nodes()[i]->get_y(),
+                                      maze->get_nodes()[j]->get_x(), maze->get_nodes()[j]->get_y())) {
+                        if (counter_horizontal < horizontal_edges) {
+                            maze->add_edge(i, j);
+                            available_edges->remove_edge(i, j);
+                            disjoint_union_sets.merge(i, j);
+                            counter_horizontal++;
+                        }
+                    } else {
+                        if (counter_vertical < vertical_edges) {
+                            maze->add_edge(i, j);
+                            available_edges->remove_edge(i, j);
+                            disjoint_union_sets.merge(i, j);
+                            counter_vertical++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return maze;
 }

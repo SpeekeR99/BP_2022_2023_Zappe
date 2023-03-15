@@ -608,7 +608,7 @@ int main(int argc, char **argv) {
             };
             const char *generator_algorithms[] = {
                     "Depth First Search",
-                    "Kruskal's Algorithm",
+                    "Kruskal's Modified Algorithm",
             };
             const char *neighborhood_graph_types[] = {
                     "Same as Graph Type",
@@ -687,9 +687,15 @@ int main(int argc, char **argv) {
                 if (generator_algorithm == GeneratorType::KRUSKAL) {
                     if (ImGui::SliderFloat("Horizontal Bias", &horizontal_bias, 0.0f, 1.0))
                         vertical_bias = 1.0f - horizontal_bias;
+                    ImGui::SameLine();
+                    help_marker("Horizontal Bias means that horizontal paths are more likely to be chosen over vertical ones\nIf the value is 0, only essential horizontal paths will be created\nIf the value is 1, only essential vertical paths will be created");
                     if (ImGui::SliderFloat("Vertical Bias", &vertical_bias, 0.0f, 1.0))
                         horizontal_bias = 1.0f - vertical_bias;
+                    ImGui::SameLine();
+                    help_marker("Vertical Bias means that vertical paths are more likely to be chosen over horizontal ones\nIf the value is 0, only essential vertical paths will be created\nIf the value is 1, only essential horizontal paths will be created");
                     ImGui::SliderFloat("Cycle Bias", &cycle_bias, 0.0f, 1.0f);
+                    ImGui::SameLine();
+                    help_marker("Cycle Bias refers to the probability of cycles being created\nIf the value is 0, no cycles will be created, resulting in a Perfect Maze\nIf the value is 1, cycles will be created as much as possible, resulting in Fully Connected Graph");
                 }
             }
 
