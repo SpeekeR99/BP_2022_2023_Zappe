@@ -1,7 +1,7 @@
 #include "shader.h"
 
-struct ShaderProgramSource Shader::parse_shader(const std::string &filepath) {
-    std::ifstream stream(filepath);
+struct ShaderProgramSource Shader::parse_shader(const std::string &shader_string) {
+    std::stringstream stream(shader_string);
 
     enum class shader_type {
         NONE = -1, VERTEX = 0, FRAGMENT = 1

@@ -1,6 +1,30 @@
 #pragma once
 
 constexpr double PI = 3.14159265359;
+const std::string SHADER_STRING = "#shader vertex\n"
+                                  "#version 330 core\n"
+                                  "\n"
+                                  "layout(location = 0) in vec2 aPosition;\n"
+                                  "layout(location = 1) in vec3 aColor;\n"
+                                  "\n"
+                                  "out vec3 color;\n"
+                                  "\n"
+                                  "void main() {\n"
+                                  "    gl_Position = vec4(aPosition.x, aPosition.y, 0.0f, 1.0f);\n"
+                                  "    color = aColor;\n"
+                                  "}\n"
+                                  "\n"
+                                  "#shader fragment\n"
+                                  "#version 330 core\n"
+                                  "\n"
+                                  "in vec3 color;\n"
+                                  "\n"
+                                  "out vec4 fragColor;\n"
+                                  "\n"
+                                  "void main() {\n"
+                                  "    fragColor = vec4(color, 0.5f);\n"
+                                  "}";
+
 extern int WINDOW_WIDTH;
 extern int WINDOW_HEIGHT;
 extern int WINDOW_X_OFFSET;

@@ -38,6 +38,7 @@ std::shared_ptr<Graph> graph;
 std::shared_ptr<Graph> maze;
 std::shared_ptr<Graph> neighborhood;
 std::shared_ptr<CellularAutomata> ca;
+
 static GraphType graph_type = GraphType::ORTHOGONAL;
 static NeighborhoodGraphType neighborhood_graph_type = NeighborhoodGraphType::SAME_AS_GRAPH_TYPE;
 static MazeType maze_type = MazeType::STATIC;
@@ -45,25 +46,30 @@ static GeneratorType generator_algorithm = GeneratorType::KRUSKAL;
 static SolverType solver_algorithm = SolverType::A_STAR;
 static HeuristicType heuristic = HeuristicType::EUCLIDEAN_DISTANCE;
 bool non_grid_version = false;
+
 std::unique_ptr<Player> player;
+
 bool draw = false;
 bool paused = false;
 bool is_solvable = false;
 bool is_solved = false;
-std::vector<std::pair<int, int>> solved_path;
 bool show_solution = false;
+bool is_solvable_from_player = false;
+bool show_solution_from_player = false;
+
+std::vector<std::pair<int, int>> solved_path;
+std::vector<std::pair<int, int>> solved_path_from_player;
+
 std::string rulestring = "B3/S1234";
 std::regex rulestring_regex("B([0-9]+)/S([0-9]+)");
-int initialize_square_size = -1;
-float font_size = 1.0f;
 float speed = 0.6f;
-bool is_solvable_from_player = false;
-std::vector<std::pair<int, int>> solved_path_from_player;
-bool show_solution_from_player = false;
+int initialize_square_size = -1;
+
 float horizontal_bias = 0.5f;
 float vertical_bias = 0.5f;
 float cycle_bias = 0.0f;
 
+float font_size = 1.0f;
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 720;
 int WINDOW_X_OFFSET = WINDOW_WIDTH - WINDOW_HEIGHT;
@@ -72,28 +78,34 @@ float WHITE_LINE_WIDTH = (float) GRID_SIZE * 0.5f;
 float WHITE_NODE_RADIUS = WHITE_LINE_WIDTH / (float) WINDOW_HEIGHT;
 float PLAYER_RADIUS = (float) GRID_SIZE * 0.25f / (float) WINDOW_HEIGHT;
 bool fullscreen = false;
+
 bool show_settings_window = false;
 bool show_about_window = false;
 
 ImVec4 background_color = {29. / 255, 29. / 255, 29. / 255, 1.0f};
+ImVec4 paths_color = {1.0f, 1.0f, 1.0f, 1.0f};
+ImVec4 start_end_color = {0.0f, 0.0f, 1.0f, 1.0f};
+ImVec4 player_color = {0.0f, 1.0f, 0.0f, 1.0f};
+ImVec4 player_path_color = {1.0f, 0.0f, 0.0f, 1.0f};
+ImVec4 solution_color = {0.0f, 25. / 255, 185. / 255, 1.0f};
+ImVec4 solution_from_player_color = {0.0f, 185. / 255, 110. / 255, 1.0f};
+
 std::shared_ptr<VAO> background_vao;
 std::shared_ptr<VBO> background_vbo;
 std::shared_ptr<EBO> background_ebo;
-ImVec4 paths_color = {1.0f, 1.0f, 1.0f, 1.0f};
+
 std::shared_ptr<VAO> paths_vao;
 std::shared_ptr<VBO> paths_vbo;
 std::shared_ptr<EBO> paths_ebo;
-ImVec4 start_end_color = {0.0f, 0.0f, 1.0f, 1.0f};
-ImVec4 player_color = {0.0f, 1.0f, 0.0f, 1.0f};
-ImVec4 solution_color = {0.0f, 25. / 255, 185. / 255, 1.0f};
+
 std::shared_ptr<VAO> solution_vao;
 std::shared_ptr<VBO> solution_vbo;
 std::shared_ptr<EBO> solution_ebo;
-ImVec4 player_path_color = {1.0f, 0.0f, 0.0f, 1.0f};
+
 std::shared_ptr<VAO> player_path_vao;
 std::shared_ptr<VBO> player_path_vbo;
 std::shared_ptr<EBO> player_path_ebo;
-ImVec4 solution_from_player_color = {0.0f, 185. / 255, 110. / 255, 1.0f};
+
 std::shared_ptr<VAO> solution_from_player_vao;
 std::shared_ptr<VBO> solution_from_player_vbo;
 std::shared_ptr<EBO> solution_from_player_ebo;
@@ -472,7 +484,7 @@ int main(int argc, char **argv) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Load shader
-    auto source_default = Shader::parse_shader("src/graphics/shaders/default.shader");
+    auto source_default = Shader::parse_shader(SHADER_STRING);
     auto shader_default = Shader::create_shader(source_default.vertex_source, source_default.fragment_source);
 
     // Background rectangle
