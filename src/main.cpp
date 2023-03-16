@@ -685,6 +685,8 @@ int main(int argc, char **argv) {
                 ImGui::Combo("Generator", (int *) &generator_algorithm, generator_algorithms, IM_ARRAYSIZE(generator_algorithms));
 
                 if (generator_algorithm == GeneratorType::KRUSKAL) {
+                    ImGui::SameLine();
+                    help_marker("Kruskal's Modified Algorithm is meant for Orthogonal Grid Graphs\nIt is not guaranteed to look good with other graph types");
                     if (ImGui::SliderFloat("Horizontal Bias", &horizontal_bias, 0.0f, 1.0))
                         vertical_bias = 1.0f - horizontal_bias;
                     ImGui::SameLine();

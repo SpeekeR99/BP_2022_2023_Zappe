@@ -138,12 +138,12 @@ bool is_horizontal(int x1, int y1, int x2, int y2) {
 std::shared_ptr<Graph>
 Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_bias, float vertical_bias,
                                  float cycle_bias) {
-    int to_add = (int) (cycle_bias * (float) (maze->get_width() * maze->get_height() - maze->get_width() - maze->get_height() + 1));
-    int total_walls = maze->get_width() * maze->get_height() - maze->get_width() - maze->get_height() - to_add + 1;
+    int to_add = (int) (cycle_bias * (float) (maze->get_v() - maze->get_width() - maze->get_height() + 1));
+    int total_walls = maze->get_v() - maze->get_width() - maze->get_height() - to_add + 1;
     int horizontal_walls = (int) (vertical_bias * (float) total_walls);
     int vertical_walls = total_walls - horizontal_walls;
-    int horizontal_edges = (maze->get_height() - 1) * maze->get_width() - horizontal_walls;
-    int vertical_edges = (maze->get_width() - 1) * maze->get_height() - vertical_walls;
+    int horizontal_edges = maze->get_v() - maze->get_width() - horizontal_walls;
+    int vertical_edges = maze->get_v() - maze->get_height() - vertical_walls;
     int counter_horizontal = 0;
     int counter_vertical = 0;
     std::shared_ptr<Graph> available_edges = maze->create_copy();
