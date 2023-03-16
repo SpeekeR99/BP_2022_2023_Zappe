@@ -10,7 +10,7 @@ std::shared_ptr<Graph> Generator::create_orthogonal_grid_graph(int width, int he
             int v = i * height + j;
             int x = i * GRID_SIZE + GRID_SIZE;
             int y = j * GRID_SIZE + GRID_SIZE;
-            if (non_grid) {
+            if (non_grid) { // add some noise
                 x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
                 y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
@@ -38,7 +38,7 @@ std::shared_ptr<Graph> Generator::create_hexagonal_grid_graph(int width, int hei
             int y = j * GRID_SIZE + GRID_SIZE;
             if (i % 2 == 1)
                 y += GRID_SIZE / 2;
-            if (non_grid) {
+            if (non_grid) { // add some noise
                 x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
                 y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
@@ -68,7 +68,7 @@ std::shared_ptr<Graph> Generator::create_orthogonal_grid_graph_laplacian(int wid
             int v = i * height + j;
             int x = i * GRID_SIZE + GRID_SIZE;
             int y = j * GRID_SIZE + GRID_SIZE;
-            if (non_grid) {
+            if (non_grid) { // add some noise
                 x += static_cast<int>(dis(gen) * GRID_SIZE / 8);
                 y += static_cast<int>(dis(gen) * GRID_SIZE / 8);
             }
@@ -102,7 +102,7 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
 
     while (!stack.empty()) {
         std::vector<int> neighbors;
-        for (int i : to_be_removed_paths->get_adj()[current])
+        for (int i: to_be_removed_paths->get_adj()[current])
             if (!visited[i])
                 neighbors.push_back(i);
 
@@ -131,6 +131,14 @@ std::shared_ptr<Graph> Generator::generate_maze_dfs(std::shared_ptr<Graph> &maze
     return maze;
 }
 
+/**
+ * Checks if the edge (path) is horizontal or vertical
+ * @param x1 X coordinate of the first node
+ * @param y1 Y coordinate of the first node
+ * @param x2 X coordinate of the second node
+ * @param y2 Y coordinate of the second node
+ * @return True if the edge is horizontal, false otherwise
+ */
 bool is_horizontal(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) > abs(y1 - y2);
 }
@@ -155,7 +163,7 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
 
     for (int i = 0; i < maze->get_v(); i++) {
         std::shuffle(maze_copy->get_adj()[i].begin(), maze_copy->get_adj()[i].end(), gen);
-        for (int j : maze->get_adj()[i]) {
+        for (int j: maze->get_adj()[i]) {
             maze->remove_edge(i, j);
         }
     }
@@ -164,11 +172,13 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
     std::iota(random_indices.begin(), random_indices.end(), 0);
     std::shuffle(random_indices.begin(), random_indices.end(), gen);
 
+    // First add necessary edges to make sure that the maze is connected (vertically)
     for (int i = 0; i < maze->get_height() - 1; i++) {
         bool break_flag = false;
-        for (int j : random_indices) {
-            for (int k : random_indices) {
-                if (j % maze->get_height() == i && k % maze->get_height() == i + 1 && available_edges->is_adjacent(j, k)) {
+        for (int j: random_indices) {
+            for (int k: random_indices) {
+                if (j % maze->get_height() == i && k % maze->get_height() == i + 1 &&
+                    available_edges->is_adjacent(j, k)) {
                     maze->add_edge(j, k);
                     available_edges->remove_edge(j, k);
                     disjoint_union_sets.merge(j, k);
@@ -182,11 +192,13 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
         }
     }
 
+    // Then add necessary edges to make sure that the maze is connected (horizontally)
     for (int i = 0; i < maze->get_width() - 1; i++) {
         bool break_flag = false;
-        for (int j : random_indices) {
-            for (int k : random_indices) {
-                if (j / maze->get_height() == i && k / maze->get_height() == i + 1 && available_edges->is_adjacent(j, k)) {
+        for (int j: random_indices) {
+            for (int k: random_indices) {
+                if (j / maze->get_height() == i && k / maze->get_height() == i + 1 &&
+                    available_edges->is_adjacent(j, k)) {
                     maze->add_edge(j, k);
                     available_edges->remove_edge(j, k);
                     disjoint_union_sets.merge(j, k);
@@ -200,8 +212,9 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
         }
     }
 
-    for (int i : random_indices) {
-        for (int j : maze_copy->get_adj()[i]) {
+    // Basic Kruskal's algorithm with counting of horizontal and vertical edges
+    for (int i: random_indices) {
+        for (int j: maze_copy->get_adj()[i]) {
             if (disjoint_union_sets.find(i) != disjoint_union_sets.find(j)) {
                 if (is_horizontal(maze->get_nodes()[i]->get_x(), maze->get_nodes()[i]->get_y(),
                                   maze->get_nodes()[j]->get_x(), maze->get_nodes()[j]->get_y())) {
@@ -223,9 +236,10 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
         }
     }
 
+    // Add the remaining edges to make sure that the cycle bias is respected
     while (counter_horizontal + counter_vertical < horizontal_edges + vertical_edges) {
-        for (int i : random_indices) {
-            for (int j : random_indices) {
+        for (int i: random_indices) {
+            for (int j: random_indices) {
                 if (available_edges->is_adjacent(i, j)) {
                     if (is_horizontal(maze->get_nodes()[i]->get_x(), maze->get_nodes()[i]->get_y(),
                                       maze->get_nodes()[j]->get_x(), maze->get_nodes()[j]->get_y())) {

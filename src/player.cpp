@@ -19,5 +19,5 @@ std::vector<std::pair<int, int>> Player::get_path() const {
 void Player::move_to(int x_new, int y_new) {
     x = x_new;
     y = y_new;
-    path.emplace_back(x, y);
+    path.emplace_back(x, y); // Add new coordinates to path
 }

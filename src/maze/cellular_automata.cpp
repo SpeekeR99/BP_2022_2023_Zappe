@@ -1,8 +1,12 @@
 #include "cellular_automata.h"
 
-CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& orig_graph, const std::shared_ptr<Graph>& neighborhood, const int init_square_w) : rule_string(std::move(rules)), born_rule(), survive_rule() {
+CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph> &orig_graph,
+                                   const std::shared_ptr<Graph> &neighborhood, const int init_square_w) : rule_string(
+        std::move(rules)), born_rule(), survive_rule() {
+    // Create copy of original graph
     original_grid_graph = orig_graph;
     graph = orig_graph->create_copy();
+    // If neighborhood graph is not given, create one from original graph
     if (neighborhood)
         neighborhood_graph = neighborhood->create_copy();
     else
@@ -14,6 +18,7 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
     if (init_square_w > -1)
         width = init_square_w;
 
+    // Randomly set nodes to alive or dead
     for (int i = 1; i < graph->get_v() - 1; i++) {
         if (i / graph->get_width() < width && i % graph->get_width() < width) {
             if (dis(gen) == 1) {
@@ -21,23 +26,23 @@ CellularAutomata::CellularAutomata(std::string rules, std::shared_ptr<Graph>& or
                 for (int j = 0; j < graph->get_v(); j++)
                     graph->remove_edge(i, j);
             }
-        }
-        else {
+        } else {
             graph->get_nodes()[i]->set_alive(false);
             for (int j = 0; j < graph->get_v(); j++)
                 graph->remove_edge(i, j);
         }
     }
 
+    // Save initial state
     initialized_graph = graph->create_copy();
 
+    // Parse rules
     for (int i = 0; i < rule_string.length(); i++) {
         if (rule_string[i] == 'B') {
             for (int j = i + 1; j < rule_string.find_first_of('/'); j++) {
                 born_rule.push_back(rule_string[j] - '0');
             }
-        }
-        else if (rule_string[i] == 'S') {
+        } else if (rule_string[i] == 'S') {
             for (int j = i + 1; j < rule_string.length(); j++) {
                 survive_rule.push_back(rule_string[j] - '0');
             }
@@ -59,15 +64,17 @@ void CellularAutomata::next_generation() {
         }
 
         if ((graph->get_nodes()[i]->is_alive() && std::count(survive_rule.begin(), survive_rule.end(), alive_neighbors))
-           || (!graph->get_nodes()[i]->is_alive() && std::count(born_rule.begin(), born_rule.end(), alive_neighbors)))
+            || (!graph->get_nodes()[i]->is_alive() && std::count(born_rule.begin(), born_rule.end(), alive_neighbors)))
             new_graph->get_nodes()[i]->set_alive(true);
         else
             new_graph->get_nodes()[i]->set_alive(false);
     }
 
+    // Set start and end nodes to alive
     new_graph->get_nodes()[0]->set_alive(true);
     new_graph->get_nodes()[graph->get_v() - 1]->set_alive(true);
 
+    // Resolve edges
     for (int i = 0; i < new_graph->get_v(); i++) {
         std::vector<int> possible_neighbors;
         for (int j = 0; j < new_graph->get_v(); j++) {

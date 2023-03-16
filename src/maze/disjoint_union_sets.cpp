@@ -20,6 +20,7 @@ void Disjoint_union_sets::merge(int x, int y) {
     int x_root = find(x);
     int y_root = find(y);
 
+    // Elements are already in the same set
     if (x_root == y_root)
         return;
 
