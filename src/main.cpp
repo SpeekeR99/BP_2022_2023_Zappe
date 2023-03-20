@@ -596,6 +596,8 @@ void reset_player_button_callback() {
         ca->reset();
         Drawing::buffer_graph(paths_vao, paths_vbo, paths_ebo, ca->get_graph(), paths_color);
     }
+    else
+        return;
     // Reset the is_solved flag
     is_solved = false;
 
