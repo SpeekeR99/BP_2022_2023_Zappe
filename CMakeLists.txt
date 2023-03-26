@@ -45,6 +45,14 @@ set(
     lib/imgui/backends/imgui_impl_opengl3_loader.h
 )
 
+# Including stb
+include_directories(lib/stb)
+
+set(
+    stb
+    lib/stb/stb_image_write.h
+)
+
 add_executable(
     BP_2022_Zappe
     src/main.cpp
@@ -75,6 +83,7 @@ add_executable(
     src/maze/disjoint_union_sets.h
     ${imgui_files}
     ${imgui_impl_files}
+    ${stb}
 )
 
 target_link_libraries(BP_2022_Zappe glfw libglew_static ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARY})

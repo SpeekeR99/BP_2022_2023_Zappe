@@ -153,66 +153,7 @@ int cosine_distance(int x1, int y1, int x2, int y2) {
 
 bool Solver::is_maze_solvable_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
                                      const std::pair<int, int> &end, HeuristicType heuristic) {
-    std::vector<int> g_score(maze->get_v(), INT_MAX);
-    std::vector<int> f_score(maze->get_v(), INT_MAX);
-    std::vector<int> previous(maze->get_v(), -1);
-    std::vector<int> list(maze->get_v());
-
-    auto start_node = maze->get_nearest_node_to(start.first, start.second);
-    auto end_node = maze->get_nearest_node_to(end.first, end.second);
-
-    g_score[start_node] = 0;
-    f_score[start_node] = 0;
-    if (heuristic == HeuristicType::MANHATTAN_DISTANCE)
-        f_score[start_node] += manhattan_distance(start.first, start.second, end.first, end.second);
-    else if (heuristic == HeuristicType::EUCLIDEAN_DISTANCE)
-        f_score[start_node] += euclidean_distance(start.first, start.second, end.first, end.second);
-    else if (heuristic == HeuristicType::COSINE_DISTANCE)
-        f_score[start_node] += cosine_distance(start.first, start.second, end.first, end.second);
-    list.push_back(start_node);
-
-    int current = -1;
-    while (!list.empty()) {
-        // Find the node with the lowest f_score
-        int min = INT_MAX;
-        for (auto &node: list) {
-            if (f_score[node] < min) {
-                min = f_score[node];
-                current = node;
-            }
-        }
-        list.erase(std::remove(list.begin(), list.end(), current), list.end());
-
-        // If the current node is the end node, return true
-        if (current == end_node)
-            return true;
-
-        // If the current node is not the end node, continue
-        for (auto &node: maze->get_nodes()) {
-            if (maze->is_adjacent(current, node->get_v()) && maze->get_nodes()[node->get_v()]->is_alive()) {
-                auto tentative_g_score = g_score[current] + 1;
-                // If the current path is better than the previous path, update the path
-                if (tentative_g_score < g_score[node->get_v()]) {
-                    previous[node->get_v()] = current;
-                    g_score[node->get_v()] = tentative_g_score;
-                    f_score[node->get_v()] = g_score[node->get_v()];
-                    if (heuristic == HeuristicType::MANHATTAN_DISTANCE)
-                        f_score[node->get_v()] += manhattan_distance(node->get_x(), node->get_y(), end.first,
-                                                                     end.second);
-                    else if (heuristic == HeuristicType::EUCLIDEAN_DISTANCE)
-                        f_score[node->get_v()] += euclidean_distance(node->get_x(), node->get_y(), end.first,
-                                                                     end.second);
-                    else if (heuristic == HeuristicType::COSINE_DISTANCE)
-                        f_score[node->get_v()] += cosine_distance(node->get_x(), node->get_y(), end.first, end.second);
-                    if (std::find(list.begin(), list.end(), node->get_v()) == list.end())
-                        list.push_back(node->get_v());
-                }
-            }
-        }
-    }
-
-    // If the list is empty, return false
-    return false;
+    return is_maze_solvable_bfs(maze, start, end);
 }
 
 std::vector<std::pair<int, int>>

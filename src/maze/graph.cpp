@@ -31,8 +31,8 @@ std::vector<std::shared_ptr<Node>> Graph::get_nodes() const {
 
 int Graph::get_nearest_node_to(const int x, const int y) const {
     auto nearest = -1;
-    auto nearest_dx = GRID_SIZE * 2;
-    auto nearest_dy = GRID_SIZE * 2;
+    auto nearest_dx = WINDOW_WIDTH;
+    auto nearest_dy = WINDOW_WIDTH;
 
     // Find the nearest node
     for (auto &node: get_nodes()) {

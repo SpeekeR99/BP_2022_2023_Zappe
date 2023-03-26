@@ -1,6 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <regex>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -333,8 +335,83 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 
     // Buffer the lines for the player path and the solution from the player
     Drawing::buffer_lines(player_path_vao, player_path_vbo, player_path_ebo, player->get_path(), player_path_color);
-    Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
+    if (is_solvable_from_player)
+        Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
                           solved_path_from_player, solution_from_player_color);
+}
+
+/**
+ * Exports the current frame as an image
+ */
+void export_as_image_with_gui_callback() {
+    GLsizei channels = 3;
+    GLsizei stride = channels * WINDOW_WIDTH;
+    stride += (stride % 4) ? (4 - stride % 4) : 0;
+    GLsizei buffer_size = stride * WINDOW_HEIGHT;
+    std::vector<char> buffer(buffer_size);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glReadBuffer(GL_FRONT);
+    glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
+    stbi_flip_vertically_on_write(true);
+    auto now = std::chrono::system_clock::now().time_since_epoch().count();
+    std::string name = std::to_string(now).append(".png");
+    stbi_write_png(name.c_str(), WINDOW_WIDTH, WINDOW_HEIGHT, channels, buffer.data(), stride);
+}
+
+/**
+ * Exports the current frame as an image
+ * without the GUI elements
+ */
+void export_as_image_without_gui_callback() {
+    GLsizei channels = 3;
+    GLsizei stride = channels * (WINDOW_WIDTH - WINDOW_X_OFFSET);
+    stride += (stride % 4) ? (4 - stride % 4) : 0;
+    GLsizei buffer_size = stride * WINDOW_HEIGHT;
+    std::vector<char> buffer(buffer_size);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glReadBuffer(GL_FRONT);
+    glReadPixels(WINDOW_X_OFFSET, 0, WINDOW_WIDTH - WINDOW_X_OFFSET, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE,
+                 buffer.data());
+    stbi_flip_vertically_on_write(true);
+    auto now = std::chrono::system_clock::now().time_since_epoch().count();
+    std::string name = std::to_string(now).append(".png");
+    stbi_write_png(name.c_str(), WINDOW_WIDTH - WINDOW_X_OFFSET, WINDOW_HEIGHT, channels, buffer.data(), stride);
+}
+
+/**
+ * Exports the current raw maze (without the player and the solution, etc.) as an image
+ * @param window Window to export
+ */
+void export_as_image_raw_maze_callback(GLFWwindow *window) {
+    // Draw background
+    background_vao->bind();
+    glDrawElements(GL_QUADS, background_ebo->num_elements, GL_UNSIGNED_INT, 0);
+    background_vao->unbind();
+
+    // Draw maze
+    if (draw) {
+        glLineWidth(WHITE_LINE_WIDTH);
+        paths_vao->bind();
+        glDrawElements(GL_LINES, paths_ebo->num_elements, GL_UNSIGNED_INT, 0);
+        paths_vao->unbind();
+
+        // Draw the nodes as circles to smooth the lines conjunctions
+        if (maze_type == MazeType::STATIC) {
+            for (auto &node: maze->get_nodes())
+                Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
+        } else if (maze_type == MazeType::DYNAMIC) {
+            for (auto &node: ca->get_graph()->get_nodes())
+                if (node->is_alive()) // Draw alive nodes only
+                    Drawing::draw_circle(node->get_x(), node->get_y(), WHITE_NODE_RADIUS, paths_color);
+        }
+    }
+
+    // Swap the buffers
+    glfwSwapBuffers(window);
+    glfwSwapInterval(1);
+
+    // Export
+    export_as_image_without_gui_callback();
 }
 
 /**
@@ -574,8 +651,10 @@ void solve_button_callback() {
     }
 
     // Buffer the solutions
-    Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
-    Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
+    if (is_solvable)
+        Drawing::buffer_lines(solution_vao, solution_vbo, solution_ebo, solved_path, solution_color);
+    if (is_solvable_from_player)
+        Drawing::buffer_lines(solution_from_player_vao, solution_from_player_vbo, solution_from_player_ebo,
                           solved_path_from_player, solution_from_player_color);
 }
 
@@ -917,6 +996,13 @@ int main(int argc, char **argv) {
             // Set up the main GUI menu bar
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File")) { // File menu
+                    if (ImGui::MenuItem("Export as Image (with GUI)"))
+                        export_as_image_with_gui_callback();
+                    if (ImGui::MenuItem("Export as Image (without GUI)"))
+                        export_as_image_without_gui_callback();
+                    if (ImGui::MenuItem("Export as Image (raw maze)"))
+                        export_as_image_raw_maze_callback(window);
+                    ImGui::Separator();
                     if (ImGui::MenuItem("Exit", "Alt+F4"))
                         glfwSetWindowShouldClose(window, true);
                     ImGui::EndMenu();
