@@ -23,7 +23,7 @@ private:
     /** Number of vertices */
     int v;
     /** Adjacency list */
-    std::vector<int> *adj;
+    std::vector<std::vector<int>> adj;
     /** Nodes */
     std::vector<std::shared_ptr<Node>> nodes;
 
@@ -38,7 +38,7 @@ public:
     /**
      * Destructor
      */
-    ~Graph();
+    ~Graph() = default;
 
     /**
      * Getter for width
@@ -62,7 +62,7 @@ public:
      * Getter for adjacency list
      * @return Adjacency list
      */
-    [[nodiscard]] std::vector<int> *get_adj() const;
+    [[nodiscard]] std::vector<std::vector<int>> &get_adj();
 
     /**
      * Getter for nodes
@@ -106,7 +106,7 @@ public:
      * @param src Node index
      * @param dest Node index
      */
-    void remove_edge(int src, int dest) const;
+    void remove_edge(int src, int dest);
 
     /**
      * Checks if the given nodes are adjacent
@@ -115,11 +115,6 @@ public:
      * @return True if the nodes are adjacent, false otherwise
      */
     [[nodiscard]] bool is_adjacent(int src, int dest) const;
-
-    /**
-     * Prints the adjacency list to the console
-     */
-    void print_adj() const;
 
     /**
      * Creates a deep copy of the graph

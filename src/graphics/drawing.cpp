@@ -74,7 +74,7 @@ void Drawing::buffer_graph(std::shared_ptr<VAO> &vao, std::shared_ptr<VBO> &vbo,
         if (!node->is_alive())
             continue;
 
-        for (int &j: graph->get_adj()[i]) {
+        for (auto j : graph->get_adj()[i]) {
             auto adjacent_node = graph->get_nodes()[j];
             if (!adjacent_node->is_alive())
                 continue;

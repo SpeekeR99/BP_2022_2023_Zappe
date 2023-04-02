@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.22)
 project(BP_2022_Zappe)
 
-find_package(OpenGL REQUIRED)
-
 set(CMAKE_CXX_STANDARD 20)
+
+find_package(OpenGL REQUIRED)
 
 add_definitions(-DGLEW_STATIC)
 

@@ -1024,7 +1024,7 @@ int main(int argc, char **argv) {
 
             // Maze type section
             ImGui::SeparatorText("Maze Type");
-            if (ImGui::Combo("", (int *) &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
+            if (ImGui::Combo("##Maze Type", (int *) &maze_type, maze_types, IM_ARRAYSIZE(maze_types))) {
                 // On change of maze type, clear the maze set booleans related to solutions to false
                 clear_button_callback();
                 is_solvable = false;

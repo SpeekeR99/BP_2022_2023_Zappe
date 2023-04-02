@@ -1,12 +1,8 @@
 #include "graph.h"
 
 Graph::Graph(int width, int height) : width{width}, height{height}, v{width * height} {
-    adj = new std::vector<int>[v];
+    adj.resize(v);
     nodes.resize(v);
-}
-
-Graph::~Graph() {
-    delete[] adj;
 }
 
 int Graph::get_width() const {
@@ -21,7 +17,7 @@ int Graph::get_v() const {
     return v;
 }
 
-std::vector<int> *Graph::get_adj() const {
+std::vector<std::vector<int>> &Graph::get_adj() {
     return adj;
 }
 
@@ -88,7 +84,7 @@ void Graph::add_edge(int src, int dest) {
         adj[dest].push_back(src);
 }
 
-void Graph::remove_edge(int src, int dest) const {
+void Graph::remove_edge(int src, int dest) {
     adj[src].erase(std::remove(adj[src].begin(), adj[src].end(), dest), adj[src].end());
     adj[dest].erase(std::remove(adj[dest].begin(), adj[dest].end(), src), adj[dest].end());
 }
@@ -97,23 +93,15 @@ bool Graph::is_adjacent(int src, int dest) const {
     return std::find(adj[src].begin(), adj[src].end(), dest) != adj[src].end();
 }
 
-void Graph::print_adj() const {
-    for (int i = 0; i < v; i++) {
-        std::cout << i << " -> ";
-        for (int &j: adj[i])
-            std::cout << j << " ";
-        std::cout << std::endl;
-    }
-}
-
 std::shared_ptr<Graph> Graph::create_copy() const {
-    auto copy = std::make_unique<Graph>(width, height);
-    for (int i = 0; i < v; i++)
-        copy->adj[i] = adj[i];
+    auto copy = std::make_shared<Graph>(width, height);
     for (auto &node: nodes) {
         copy->set_node(node->get_v(), node->get_x(), node->get_y());
         if (!node->is_alive())
             copy->get_nodes()[node->get_v()]->set_alive(false);
     }
+    for (int i = 0; i < v; i++)
+        for (auto &j: adj[i])
+            copy->add_edge(i, j);
     return copy;
 }

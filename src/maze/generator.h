@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <algorithm>
+#include <numeric>
 #include "graph.h"
 #include "disjoint_union_sets.h"
 
