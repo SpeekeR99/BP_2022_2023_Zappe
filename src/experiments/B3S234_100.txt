@@ -1,18 +1,18 @@
 Orth & + & Hex & + & B3/S234
 100
-0 & 0 & nan & nan
-1 & 0 & nan & nan
-2 & 0 & nan & nan
-3 & 0 & nan & nan
-4 & 0 & nan & nan
-5 & 0 & nan & nan
-6 & 0 & nan & nan
-7 & 0 & nan & nan
-8 & 0 & nan & nan
-9 & 0 & nan & nan
-10 & 0 & nan & nan
-11 & 0 & nan & nan
-12 & 46 & 5.73913 & 3.33255
--1 & 59 & 4.1017 & 2.98978
+0 0 nan nan
+1 0 nan nan
+2 0 nan nan
+3 0 nan nan
+4 0 nan nan
+5 0 nan nan
+6 0 nan nan
+7 0 nan nan
+8 0 nan nan
+9 0 nan nan
+10 0 nan nan
+11 0 nan nan
+12 46 5.73913 3.33255
+-1 59 4.1017 2.98978
 Weighted & average: & 4.819050285714286
 Weighted & std & dev: & 3.139945904761905
