@@ -18,23 +18,17 @@
 #include "player.h"
 #include "imgui_internal.h"
 
-// Orthogonal grid graph
-// B3/S1234
-// B37/S1234
-// B3/S12345
-// B37/S12345
-
-// Hexagonal grid graph
-// B24/S12345
-// B24/S1234
-
-// Hexagonal grid graph + laplacean
-// B23/S12345   i = 7
-// B3/S1234     i = 7
-
-// Orthogonal grid graph + hexagonal
-// B3/S234    i = -1
-// B2/S234    i = -1
+// B3/S1234     Orthogonal + Laplacian  (i = -1)
+// B37/S1234    Orthogonal + Laplacian  (i = -1)
+// B3/S12345    Orthogonal + Laplacian  (i = -1)
+// B37/S12345   Orthogonal + Laplacian  (i = -1)
+// B24/S12345   Hexagonal + Hexagonal   (i = -1 | i = 7)
+// B24/S1234    Hexagonal + Hexagonal   (i = -1 | i = 7)
+// B24/S2345    Hexagonal + Hexagonal   (i = -1 | i = 7)
+// B23/S12345   Hexagonal + Laplacian   (i = 7)
+// B3/S1234     Hexagonal + Laplacian   (i = 7)
+// B3/S234      Orthogonal + Hexagonal  (i = -1)
+// B2/S234      Orthogonal + Hexagonal  (i = -1)
 
 /** Base Graph which is used to generate the maze. */
 std::shared_ptr<Graph> graph;
@@ -975,7 +969,7 @@ int main(int argc, char **argv) {
             const char *heuristics[] = {
                     "Manhattan Distance",
                     "Euclidean Distance",
-                    "Cosine Distance"
+                    "Cosine Similarity"
             };
 
             // Set up style variables

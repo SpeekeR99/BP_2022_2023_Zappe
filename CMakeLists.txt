@@ -56,6 +56,7 @@ set(
 add_executable(
     BP_2022_Zappe
     src/main.cpp
+#    src/experiments/experiment.cpp
     src/maze/graph.cpp
     src/maze/graph.h
     src/graphics/drawing.cpp

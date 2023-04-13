@@ -146,9 +146,8 @@ int euclidean_distance(int x1, int y1, int x2, int y2) {
  * @return The cosine distance between the two points
  */
 int cosine_distance(int x1, int y1, int x2, int y2) {
-    return static_cast<int>(std::sqrt(std::pow(x1, 2) + std::pow(y1, 2)) * std::sqrt(std::pow(x2, 2) +
-                                                                                     std::pow(y2, 2)) *
-                            std::cos(std::atan2(y2, x2) - std::atan2(y1, x1)));
+    return static_cast<int>((x1 * y1 + x2 * y2) / (std::sqrt(std::pow(x1, 2) + std::pow(y1, 2)) *
+                                                   std::sqrt(std::pow(x2, 2) + std::pow(y2, 2))));
 }
 
 bool Solver::is_maze_solvable_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int> &start,
@@ -173,12 +172,10 @@ Solver::solve_maze_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int
 
     g_score[start_node] = 0;
     f_score[start_node] = 0;
-    if (heuristic == HeuristicType::MANHATTAN_DISTANCE)
-        f_score[start_node] += manhattan_distance(start.first, start.second, end.first, end.second);
-    else if (heuristic == HeuristicType::EUCLIDEAN_DISTANCE)
-        f_score[start_node] += euclidean_distance(start.first, start.second, end.first, end.second);
-    else if (heuristic == HeuristicType::COSINE_DISTANCE)
-        f_score[start_node] += cosine_distance(start.first, start.second, end.first, end.second);
+    int (*h_funcs[])(int, int, int, int) = {&manhattan_distance, &euclidean_distance, &cosine_distance};
+
+    if (heuristic != HeuristicType::CONSTANT_ZERO)
+        f_score[start_node] += h_funcs[static_cast<int>(heuristic)](start.first, start.second, end.first, end.second);
     list.push_back(start_node);
 
     int current = -1;
@@ -206,14 +203,9 @@ Solver::solve_maze_a_star(std::shared_ptr<Graph> &maze, const std::pair<int, int
                     previous[node->get_v()] = current;
                     g_score[node->get_v()] = tentative_g_score;
                     f_score[node->get_v()] = g_score[node->get_v()];
-                    if (heuristic == HeuristicType::MANHATTAN_DISTANCE)
-                        f_score[node->get_v()] += manhattan_distance(node->get_x(), node->get_y(), end.first,
-                                                                     end.second);
-                    else if (heuristic == HeuristicType::EUCLIDEAN_DISTANCE)
-                        f_score[node->get_v()] += euclidean_distance(node->get_x(), node->get_y(), end.first,
-                                                                     end.second);
-                    else if (heuristic == HeuristicType::COSINE_DISTANCE)
-                        f_score[node->get_v()] += cosine_distance(node->get_x(), node->get_y(), end.first, end.second);
+                    if (heuristic != HeuristicType::CONSTANT_ZERO)
+                        f_score[node->get_v()] += h_funcs[static_cast<int>(heuristic)](node->get_x(), node->get_y(),
+                                                                                       end.first, end.second);
                     if (std::find(list.begin(), list.end(), node->get_v()) == list.end())
                         list.push_back(node->get_v());
                 }
