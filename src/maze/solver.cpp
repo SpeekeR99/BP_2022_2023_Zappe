@@ -46,8 +46,8 @@ Solver::solve_maze_bfs(std::shared_ptr<Graph> &maze, const std::pair<int, int> &
     if (!is_maze_solvable_bfs(maze, start, end))
         return {};
 
-    std::vector<int> path;
-    std::vector<int> shortest_path{maze->get_nearest_node_to(end.first, end.second)};
+    std::vector<int> previous(maze->get_v(), -1);
+    std::vector<int> shortest_path;
     int current = maze->get_nearest_node_to(start.first, start.second);
     std::vector<int> queue;
     std::vector<bool> visited(maze->get_v(), false);
@@ -59,7 +59,6 @@ Solver::solve_maze_bfs(std::shared_ptr<Graph> &maze, const std::pair<int, int> &
     while (!queue.empty()) {
         current = queue.front();
         queue.erase(queue.begin());
-        path.push_back(current);
 
         // If current node is the end node, break
         if (maze->get_nodes()[current]->get_x() == end.first && maze->get_nodes()[current]->get_y() == end.second)
@@ -76,15 +75,16 @@ Solver::solve_maze_bfs(std::shared_ptr<Graph> &maze, const std::pair<int, int> &
 
         for (auto &neighbor: neighbors) {
             queue.push_back(neighbor);
+            previous[neighbor] = current;
             visited[neighbor] = true;
         }
     }
 
     // Find the shortest path
-    for (auto &node: path | std::ranges::views::reverse) {
-        if (maze->is_adjacent(node, shortest_path.back())) {
-            shortest_path.push_back(node);
-        }
+    current = maze->get_nearest_node_to(end.first, end.second);
+    while (current != -1) {
+        shortest_path.push_back(current);
+        current = previous[current];
     }
 
     // Convert the shortest path to vector of pairs

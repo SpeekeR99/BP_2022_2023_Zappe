@@ -1,4 +1,4 @@
-Orth & + & Hex & + & B3/S234
+Orth + Hex + B3/S234
 100
 0 0 nan nan
 1 0 nan nan
@@ -14,5 +14,5 @@ Orth & + & Hex & + & B3/S234
 11 0 nan nan
 12 46 5.73913 3.33255
 -1 59 4.1017 2.98978
-Weighted & average: & 4.819050285714286
-Weighted & std & dev: & 3.139945904761905
+Weighted average: 4.819050285714286
+Weighted std dev: 3.139945904761905
