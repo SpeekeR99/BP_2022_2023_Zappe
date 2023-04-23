@@ -159,7 +159,7 @@ Generator::generate_maze_kruskal(std::shared_ptr<Graph> &maze, float horizontal_
     Disjoint_union_sets disjoint_union_sets(maze->get_v());
 
     std::default_random_engine gen(std::chrono::system_clock::now().time_since_epoch().count());
-    std::uniform_int_distribution dis(0, RAND_MAX);
+    std::uniform_int_distribution<int> dis(0, RAND_MAX);
 
     for (int i = 0; i < maze->get_v(); i++) {
         std::shuffle(maze_copy->get_adj()[i].begin(), maze_copy->get_adj()[i].end(), gen);

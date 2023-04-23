@@ -2,7 +2,6 @@
 
 #include <array>
 #include <vector>
-#include <ranges>
 #include "graph.h"
 
 /**
