@@ -2,7 +2,7 @@
 
 #include <array>
 #include <vector>
-#include <limits>
+#include <climits>
 #include "graph.h"
 
 /**
